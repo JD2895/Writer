@@ -385,7 +385,7 @@ class Main(QMainWindow):
         self.dialogueFormat = QTextCharFormat();
         self.dialogueFormat.setFontFamily("Courier")
         self.dialogueFormat.setFontPointSize(12)
-        self.dialogueFormat.setFontCapitalization(QFont.Capitalize)
+        self.dialogueFormat.setFontCapitalization(QFont.AllLowercase)   #First letter is capitalized later
         
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
@@ -425,6 +425,9 @@ class Main(QMainWindow):
         # Line format
         toSet.select(QTextCursor.LineUnderCursor)
         toSet.setCharFormat(self.dialogueFormat)
+        toSet.movePosition(QTextCursor.StartOfLine, QTextCursor.MoveAnchor)
+        toSet.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
+        toSet.setCharFormat(self.characterFormat)
         
         # Return cursor to it's original position
         toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
