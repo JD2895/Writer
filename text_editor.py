@@ -142,23 +142,7 @@ class Main(QMainWindow):
       # Makes the next toolbar appear underneath this one
         self.addToolBarBreak()
 
-    def initFormatbar(self):
-        # fontBox = QFontComboBox(self)
-        # fontBox.currentFontChanged.connect(self.fontFamily)
-        
-        # # [TO REMOVE]
-        # fontSize = QComboBox(self)
-        # fontSize.setEditable(True)
-        # fontSize.activated.connect(self.fontSize)
-        # # Minimum number of chars displayed
-        # fontSize.setMinimumContentsLength(3)
-        # fontSizes = ['6','7','8','9','10','11','12','13','14',
-             # '15','16','18','20','22','24','26','28',
-             # '32','36','40','44','48','54','60','66',
-             # '72','80','88','96']
-        # for i in fontSizes:
-            # fontSize.addItem(i)
-        
+    def initFormatbar(self):        
         # Color control
         fontColor = QAction(QtGui.QIcon("icons/font-color.png"),"Change font color",self)
         fontColor.triggered.connect(self.fontColor)
@@ -208,10 +192,6 @@ class Main(QMainWindow):
         alignJustify.triggered.connect(self.alignJustify)
         
         self.formatbar = self.addToolBar("Format")
-        
-        # self.formatbar.addWidget(fontBox)
-        # self.formatbar.addWidget(fontSize)
-        # self.formatbar.addSeparator()
         
         self.formatbar.addAction(fontColor)
         self.formatbar.addAction(backColor)
