@@ -44,6 +44,9 @@ class Main(QMainWindow):
         # x and y coordinates on the screen, width, height
         self.setGeometry(100,100,1030,800) 
         self.setWindowTitle("Writer")
+        
+        # Set starting format
+        self.formatAction()
 
     def initToolbar(self):
         # New
@@ -553,7 +556,7 @@ class Main(QMainWindow):
     def capitalizeFirst(self, toSet):
         toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
         toSet.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
-        toSet.setCharFormat(self.characterFormat)
+        # toSet.setCharFormat(QFont.AllUppercase)   [TO FIX !!!!!!!!!!!!]
  
 def main():
     app = QApplication(sys.argv)
@@ -566,7 +569,7 @@ if __name__ == "__main__":
 
 # To do:
 # [ ] SCENE HEADING (centered, upper case)
-# [ ] Action (left aligned, regular case)
+# [X] Action (left aligned, regular case)
 # [x] CHARACTER (left aligned indented, upper case)
 # [x] Dialogue (left aligned less indented, regular case)
 # [X] (Paranthetical) (centered, in brackets, italics?)
@@ -574,3 +577,4 @@ if __name__ == "__main__":
 # [X] Set page size
 # [ ] Auto complete character names
 # [ ] Shortcut to switch styles
+# [ ] Fix capitalizeFirst bug (TO FIX)
