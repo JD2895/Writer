@@ -14,6 +14,7 @@ class Main(QMainWindow):
         QMainWindow.__init__(self,parent)
         self.setMinimumWidth(800)
         self.filename = ""
+        self.prevFormatState = "None"
         
         self.setFontFormats()
         self.initUI()
@@ -150,13 +151,17 @@ class Main(QMainWindow):
         backColor.triggered.connect(self.highlight)
         
         # Character
-        capitalAction = QAction("Character",self)
-        capitalAction.triggered.connect(self.formatCharacter)
-        capitalAction.setShortcut("Alt+1")
+        characterFormatAction = QAction("Character",self)
+        characterFormatAction.triggered.connect(self.formatCharacter)
+        characterFormatAction.setShortcut("Alt+1")
         # Dialogue
-        dialogueAction = QAction("Dialogue",self)
-        dialogueAction.triggered.connect(self.formatDialogue)
-        dialogueAction.setShortcut("Alt+2")
+        dialogueFormatAction = QAction("Dialogue",self)
+        dialogueFormatAction.triggered.connect(self.formatDialogue)
+        dialogueFormatAction.setShortcut("Alt+2")
+        # Paranthesis
+        dialogueFormatAction = QAction("Paranthesis",self)
+        dialogueFormatAction.triggered.connect(self.formatParanthesis)
+        dialogueFormatAction.setShortcut("Alt+3")
         
         # Bold
         boldAction = QAction(QtGui.QIcon("icons/bold.png"),"Bold",self)
@@ -194,8 +199,8 @@ class Main(QMainWindow):
         self.formatbar.addAction(backColor)
         self.formatbar.addSeparator()
         
-        self.formatbar.addAction(capitalAction)
-        self.formatbar.addAction(dialogueAction)
+        self.formatbar.addAction(characterFormatAction)
+        self.formatbar.addAction(dialogueFormatAction)
         self.formatbar.addSeparator()
         
         self.formatbar.addAction(boldAction)
@@ -373,16 +378,19 @@ class Main(QMainWindow):
         self.characterFormat.setFontFamily("Courier")
         self.characterFormat.setFontPointSize(12)
         self.characterFormat.setFontCapitalization(QFont.AllUppercase)
+        self.characterFormat.setFontItalic(False)
         
         self.dialogueFormat = QTextCharFormat();
         self.dialogueFormat.setFontFamily("Courier")
         self.dialogueFormat.setFontPointSize(12)
         self.dialogueFormat.setFontCapitalization(QFont.AllLowercase)   #First letter is capitalized later
+        self.characterFormat.setFontItalic(False)
         
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
         self.paranthesisFormat.setFontPointSize(12)
         self.paranthesisFormat.setFontCapitalization(QFont.AllLowercase)
+        self.characterFormat.setFontItalic(True)
         
     def formatCharacter(self):
         # Setup
@@ -407,6 +415,36 @@ class Main(QMainWindow):
         
         # Apply alignment
         self.scriptEdit.setAlignment(Qt.AlignLeft)
+        
+        # Track state
+        self.prevFormatState = "Character"
+       
+    def formatParanthesis(self):
+        # Setup
+        toSet = self.scriptEdit.textCursor()
+        toSetOgPosition = toSet.position()
+        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
+        
+        # Line format
+        toSet.select(QTextCursor.LineUnderCursor)
+        toSet.setCharFormat(self.paranthesisFormat)
+        
+        # Return cursor to it's original position
+        toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
+        
+        # Block format
+        toSetBlockFmt.setLeftMargin(240)
+        toSetBlockFmt.setRightMargin(0)
+        
+        # Apply the changes
+        toSet.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(toSet)
+        
+        # Apply alignment
+        self.scriptEdit.setAlignment(Qt.AlignLeft)
+        
+        # Track state
+        self.prevFormatState = "Paranthesis"
         
     def formatDialogue(self):
         # Setup
@@ -434,6 +472,9 @@ class Main(QMainWindow):
         
         # Apply alignment
         self.scriptEdit.setAlignment(Qt.AlignLeft)
+        
+        # Track state
+        self.prevFormatState = "Dialogue"
  
 def main():
     app = QApplication(sys.argv)
