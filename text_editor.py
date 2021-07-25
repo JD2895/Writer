@@ -187,9 +187,6 @@ class Main(QMainWindow):
         # Align Right
         alignRight = QAction(QtGui.QIcon("icons/align-right.png"),"Align right",self)
         alignRight.triggered.connect(self.alignRight)
-        # Align Justify
-        alignJustify = QAction(QtGui.QIcon("icons/align-justify.png"),"Align justify",self)
-        alignJustify.triggered.connect(self.alignJustify)
         
         self.formatbar = self.addToolBar("Format")
         
@@ -212,7 +209,6 @@ class Main(QMainWindow):
         self.formatbar.addAction(alignLeft)
         self.formatbar.addAction(alignCenter)
         self.formatbar.addAction(alignRight)
-        self.formatbar.addAction(alignJustify)
         self.formatbar.addSeparator()
 
     def initMenubar(self):
@@ -365,11 +361,7 @@ class Main(QMainWindow):
         self.scriptEdit.setAlignment(Qt.AlignRight)
      
     def alignCenter(self):
-        self.scriptEdit.setAlignment(Qt.AlignCenter)
-     
-    def alignJustify(self):
-        self.scriptEdit.setAlignment(Qt.AlignJustify)
-        
+        self.scriptEdit.setAlignment(Qt.AlignCenter)        
     # ----- BREAK ----- Final
     
     def setFontFormats(self):
@@ -459,5 +451,6 @@ if __name__ == "__main__":
 # [x] Dialogue (left aligned less indented, regular case)
 # [ ] (Paranthetical) (centered, in brackets, italics?)
 # [ ] TRANSITION (right aligned, uppercase)
-# [ ] Set page size
+# [X] Set page size
 # [ ] Auto complete character names
+# [ ] Shortcut to switch styles
