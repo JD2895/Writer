@@ -18,6 +18,9 @@ class Main(QMainWindow):
         
         self.setFontFormats()
         self.initUI()
+        
+        # Set starting format
+        self.formatAction()
  
     def initUI(self):
         # Initialising script editor widget
@@ -44,9 +47,6 @@ class Main(QMainWindow):
         # x and y coordinates on the screen, width, height
         self.setGeometry(100,100,1030,800) 
         self.setWindowTitle("Writer")
-        
-        # Set starting format
-        self.formatAction()
 
     def initToolbar(self):
         # New
@@ -392,7 +392,7 @@ class Main(QMainWindow):
         self.actionFormat = QTextCharFormat();
         self.actionFormat.setFontFamily("Courier")
         self.actionFormat.setFontPointSize(12)
-        self.actionFormat.setFontCapitalization(QFont.AllLowercase)     #First letter is capitalized later
+        self.actionFormat.setFontCapitalization(QFont.MixedCase)     #First letter is capitalized later
         self.actionFormat.setFontItalic(False)
         
         self.characterFormat = QTextCharFormat();
@@ -404,7 +404,7 @@ class Main(QMainWindow):
         self.dialogueFormat = QTextCharFormat();
         self.dialogueFormat.setFontFamily("Courier")
         self.dialogueFormat.setFontPointSize(12)
-        self.dialogueFormat.setFontCapitalization(QFont.AllLowercase)   #First letter is capitalized later
+        self.dialogueFormat.setFontCapitalization(QFont.MixedCase)   #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
         
         self.paranthesisFormat = QTextCharFormat();
@@ -424,6 +424,7 @@ class Main(QMainWindow):
             self.formatAction()
         
     def formatAction(self):
+        print("setting Action")
         # Setup
         toSet = self.scriptEdit.textCursor()
         toSetOgPosition = toSet.position()
@@ -433,9 +434,9 @@ class Main(QMainWindow):
         self.changeParenthesied(toSet, False)
         
         # Line format
+        self.capitalizeFirst(toSet)
         toSet.select(QTextCursor.BlockUnderCursor)
         toSet.setCharFormat(self.actionFormat)
-        self.capitalizeFirst(toSet)
         
         # Return cursor to it's original position
         toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
@@ -529,9 +530,9 @@ class Main(QMainWindow):
         self.changeParenthesied(toSet, False)
         
         # Line format
+        self.capitalizeFirst(toSet)
         toSet.select(QTextCursor.BlockUnderCursor)
         toSet.setCharFormat(self.dialogueFormat)
-        self.capitalizeFirst(toSet)
         
         # Return cursor to it's original position
         toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
@@ -578,9 +579,14 @@ class Main(QMainWindow):
             return
             
     def capitalizeFirst(self, toSet):
-        toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
-        toSet.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
-        # toSet.setCharFormat(QFont.AllUppercase)   [TO FIX !!!!!!!!!!!!]
+        # CAUTION! Apart from capitalizing the first letter, 
+        # this function appears to remove all other formatting
+        toSet.select(QTextCursor.BlockUnderCursor)
+        selectedText = toSet.selectedText().strip()
+        if (len(selectedText) >= 1):
+            modifiedText = selectedText.split()[0].capitalize()
+            toSet.deleteChar()
+            toSet.insertText(modifiedText)
         
     def setChecked(self, newState):
         self.actionFormatAction.setChecked(False)
@@ -616,4 +622,3 @@ if __name__ == "__main__":
 # [X] Set page size
 # [ ] Auto complete character names
 # [X] Shortcut to switch styles
-# [ ] Fix capitalizeFirst bug (TO FIX)
