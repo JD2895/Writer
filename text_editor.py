@@ -154,21 +154,30 @@ class Main(QMainWindow):
         backColor.triggered.connect(self.highlight)
         
         # Action
-        actionFormatAction = QAction("Action",self)
-        actionFormatAction.triggered.connect(self.formatAction)
-        actionFormatAction.setShortcut("Alt+1")
+        self.actionFormatAction = QAction("Action",self)
+        self.actionFormatAction.setCheckable(True)
+        self.actionFormatAction.triggered.connect(self.formatAction)
+        self.actionFormatAction.setShortcut("Alt+1")
         # Character
-        characterFormatAction = QAction("Character",self)
-        characterFormatAction.triggered.connect(self.formatCharacter)
-        characterFormatAction.setShortcut("Alt+2")
+        self.characterFormatAction = QAction("Character",self)
+        self.characterFormatAction.setCheckable(True)
+        self.characterFormatAction.triggered.connect(self.formatCharacter)
+        self.characterFormatAction.setShortcut("Alt+2")
         # Dialogue
-        dialogueFormatAction = QAction("Dialogue",self)
-        dialogueFormatAction.triggered.connect(self.formatDialogue)
-        dialogueFormatAction.setShortcut("Alt+3")
+        self.dialogueFormatAction = QAction("Dialogue",self)
+        self.dialogueFormatAction.setCheckable(True)
+        self.dialogueFormatAction.triggered.connect(self.formatDialogue)
+        self.dialogueFormatAction.setShortcut("Alt+3")
         # Paranthesis
-        paranthesisFormatAction = QAction("Paranthesis",self)
-        paranthesisFormatAction.triggered.connect(self.formatParanthesis)
-        paranthesisFormatAction.setShortcut("Alt+4")
+        self.paranthesisFormatAction = QAction("Paranthesis",self)
+        self.paranthesisFormatAction.setCheckable(True)
+        self.paranthesisFormatAction.triggered.connect(self.formatParanthesis)
+        self.paranthesisFormatAction.setShortcut("Alt+4")
+        # Change Styles
+        self.changeStyleAction = QAction("Change Style",self)
+        self.changeStyleAction.setEnabled(True)
+        self.changeStyleAction.triggered.connect(self.changeStyle)
+        self.changeStyleAction.setShortcut("Alt+`")
         
         # Bold
         boldAction = QAction(QtGui.QIcon("icons/bold.png"),"Bold",self)
@@ -206,10 +215,11 @@ class Main(QMainWindow):
         self.formatbar.addAction(backColor)
         self.formatbar.addSeparator()
         
-        self.formatbar.addAction(actionFormatAction)
-        self.formatbar.addAction(characterFormatAction)
-        self.formatbar.addAction(dialogueFormatAction)
-        self.formatbar.addAction(paranthesisFormatAction)
+        self.formatbar.addAction(self.actionFormatAction)
+        self.formatbar.addAction(self.characterFormatAction)
+        self.formatbar.addAction(self.dialogueFormatAction)
+        self.formatbar.addAction(self.paranthesisFormatAction)
+        self.addAction(self.changeStyleAction)       # added this way to keep it hidden
         self.formatbar.addSeparator()
         
         self.formatbar.addAction(boldAction)
@@ -403,6 +413,16 @@ class Main(QMainWindow):
         self.paranthesisFormat.setFontCapitalization(QFont.AllLowercase)
         self.paranthesisFormat.setFontItalic(True)
         
+    def changeStyle(self):
+        if (self.prevFormatState == "Action"):
+            self.formatCharacter()
+        elif (self.prevFormatState == "Character"):
+            self.formatDialogue()
+        elif (self.prevFormatState == "Paranthesis"):
+            self.formatDialogue()
+        elif (self.prevFormatState == "Dialogue"):
+            self.formatAction()
+        
     def formatAction(self):
         # Setup
         toSet = self.scriptEdit.textCursor()
@@ -433,6 +453,7 @@ class Main(QMainWindow):
         
         # Track state
         self.prevFormatState = "Action"
+        self.setChecked(self.prevFormatState)
         
     def formatCharacter(self):
         # Setup
@@ -463,6 +484,7 @@ class Main(QMainWindow):
         
         # Track state
         self.prevFormatState = "Character"
+        self.setChecked(self.prevFormatState)
        
     def formatParanthesis(self):
         # Setup
@@ -495,6 +517,7 @@ class Main(QMainWindow):
         
         # Track state
         self.prevFormatState = "Paranthesis"
+        self.setChecked(self.prevFormatState)
         
     def formatDialogue(self):
         # Setup
@@ -526,6 +549,7 @@ class Main(QMainWindow):
         
         # Track state
         self.prevFormatState = "Dialogue"
+        self.setChecked(self.prevFormatState)
         
     # ----- FORMAT HELPERS -----
     def changeParenthesied(self, toSet, changeMode):
@@ -557,6 +581,21 @@ class Main(QMainWindow):
         toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
         toSet.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
         # toSet.setCharFormat(QFont.AllUppercase)   [TO FIX !!!!!!!!!!!!]
+        
+    def setChecked(self, newState):
+        self.actionFormatAction.setChecked(False)
+        self.characterFormatAction.setChecked(False)
+        self.dialogueFormatAction.setChecked(False)
+        self.paranthesisFormatAction.setChecked(False)
+        
+        if (newState == "Action"):
+            self.actionFormatAction.setChecked(True)
+        elif (newState == "Character"):
+            self.characterFormatAction.setChecked(True)
+        elif (newState == "Dialogue"):
+            self.dialogueFormatAction.setChecked(True)
+        elif (newState == "Paranthesis"):
+            self.paranthesisFormatAction.setChecked(True)
  
 def main():
     app = QApplication(sys.argv)
@@ -576,5 +615,5 @@ if __name__ == "__main__":
 # [ ] TRANSITION (right aligned, uppercase)
 # [X] Set page size
 # [ ] Auto complete character names
-# [ ] Shortcut to switch styles
+# [X] Shortcut to switch styles
 # [ ] Fix capitalizeFirst bug (TO FIX)
