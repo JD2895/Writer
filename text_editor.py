@@ -173,6 +173,16 @@ class Main(QMainWindow):
         self.paranthesisFormatAction.setCheckable(True)
         self.paranthesisFormatAction.triggered.connect(self.formatParanthesis)
         self.paranthesisFormatAction.setShortcut("Alt+4")
+        # Heading
+        self.headingFormatAction = QAction("Heading",self)
+        self.headingFormatAction.setCheckable(True)
+        self.headingFormatAction.triggered.connect(self.formatHeading)
+        self.headingFormatAction.setShortcut("Alt+5")
+        # Transition
+        self.transitionFormatAction = QAction("Transition",self)
+        self.transitionFormatAction.setCheckable(True)
+        self.transitionFormatAction.triggered.connect(self.formatTransition)
+        self.transitionFormatAction.setShortcut("Alt+6")
         # Change Styles
         self.changeStyleAction = QAction("Change Style",self)
         self.changeStyleAction.setEnabled(True)
@@ -219,6 +229,8 @@ class Main(QMainWindow):
         self.formatbar.addAction(self.characterFormatAction)
         self.formatbar.addAction(self.dialogueFormatAction)
         self.formatbar.addAction(self.paranthesisFormatAction)
+        self.formatbar.addAction(self.headingFormatAction)
+        self.formatbar.addAction(self.transitionFormatAction)
         self.addAction(self.changeStyleAction)       # added this way to keep it hidden
         self.formatbar.addSeparator()
         
@@ -394,24 +406,42 @@ class Main(QMainWindow):
         self.actionFormat.setFontPointSize(12)
         self.actionFormat.setFontCapitalization(QFont.MixedCase)     #First letter is capitalized later
         self.actionFormat.setFontItalic(False)
+        self.actionFormat.setFontUnderline(False)
         
         self.characterFormat = QTextCharFormat();
         self.characterFormat.setFontFamily("Courier")
         self.characterFormat.setFontPointSize(12)
         self.characterFormat.setFontCapitalization(QFont.AllUppercase)
         self.characterFormat.setFontItalic(False)
+        self.characterFormat.setFontUnderline(False)
         
         self.dialogueFormat = QTextCharFormat();
         self.dialogueFormat.setFontFamily("Courier")
         self.dialogueFormat.setFontPointSize(12)
         self.dialogueFormat.setFontCapitalization(QFont.MixedCase)   #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
+        self.dialogueFormat.setFontUnderline(False)
         
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
         self.paranthesisFormat.setFontPointSize(12)
         self.paranthesisFormat.setFontCapitalization(QFont.AllLowercase)
         self.paranthesisFormat.setFontItalic(True)
+        self.paranthesisFormat.setFontUnderline(False)
+        
+        self.headingFormat = QTextCharFormat();
+        self.headingFormat.setFontFamily("Courier")
+        self.headingFormat.setFontPointSize(12)
+        self.headingFormat.setFontCapitalization(QFont.AllUppercase)
+        self.headingFormat.setFontItalic(False)
+        self.headingFormat.setFontUnderline(True)
+        
+        self.transitionFormat = QTextCharFormat();
+        self.transitionFormat.setFontFamily("Courier")
+        self.transitionFormat.setFontPointSize(12)
+        self.transitionFormat.setFontCapitalization(QFont.AllUppercase)
+        self.transitionFormat.setFontItalic(False)
+        self.transitionFormat.setFontUnderline(False)
         
     def changeStyle(self):
         if (self.prevFormatState == "Action"):
@@ -424,14 +454,14 @@ class Main(QMainWindow):
             self.formatAction()
         
     def formatAction(self):
-        print("setting Action")
         # Setup
         toSet = self.scriptEdit.textCursor()
         toSetOgPosition = toSet.position()
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
-        # Parentheses check
+        # Special character check
         self.changeParenthesied(toSet, False)
+        self.changeColon(toSet, False)
         
         # Line format
         self.capitalizeFirst(toSet)
@@ -462,8 +492,9 @@ class Main(QMainWindow):
         toSetOgPosition = toSet.position()
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
-        # Parentheses check
+        # Special character check
         self.changeParenthesied(toSet, False)
+        self.changeColon(toSet, False)
         
         # Line format
         toSet.select(QTextCursor.BlockUnderCursor)
@@ -493,7 +524,8 @@ class Main(QMainWindow):
         toSetOgPosition = toSet.position()
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
-        # Parentheses check
+        # Special character check
+        self.changeColon(toSet, False)
         self.changeParenthesied(toSet, True)
         
         # Line format
@@ -526,8 +558,9 @@ class Main(QMainWindow):
         toSetOgPosition = toSet.position()
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
-        # Parentheses check
+        # Special character check
         self.changeParenthesied(toSet, False)
+        self.changeColon(toSet, False)
         
         # Line format
         self.capitalizeFirst(toSet)
@@ -550,6 +583,71 @@ class Main(QMainWindow):
         
         # Track state
         self.prevFormatState = "Dialogue"
+        self.setChecked(self.prevFormatState)
+        
+    def formatHeading(self):
+        # Setup
+        toSet = self.scriptEdit.textCursor()
+        toSetOgPosition = toSet.position()
+        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
+        
+        # Special character check
+        self.changeParenthesied(toSet, False)
+        self.changeColon(toSet, False)
+        
+        # Line format
+        toSet.select(QTextCursor.BlockUnderCursor)
+        toSet.setCharFormat(self.headingFormat)
+        
+        # Return cursor to it's original position
+        toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
+        
+        # Block format
+        toSetBlockFmt.setLeftMargin(0)
+        toSetBlockFmt.setRightMargin(0)
+        
+        # Apply changes
+        toSet.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(toSet)
+        
+        # Apply alignment
+        self.scriptEdit.setAlignment(Qt.AlignCenter)
+        
+        # Track state
+        self.prevFormatState = "Heading"
+        self.setChecked(self.prevFormatState)
+        
+    
+    def formatTransition(self):
+        # Setup
+        toSet = self.scriptEdit.textCursor()
+        toSetOgPosition = toSet.position()
+        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
+        
+        # Special character check
+        self.changeParenthesied(toSet, False)
+        self.changeColon(toSet, True)
+        
+        # Line format
+        toSet.select(QTextCursor.BlockUnderCursor)
+        toSet.setCharFormat(self.transitionFormat)
+        
+        # Return cursor to it's original position
+        toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
+        
+        # Block format
+        toSetBlockFmt.setLeftMargin(0)
+        toSetBlockFmt.setRightMargin(0)
+        
+        # Apply changes
+        toSet.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(toSet)
+        
+        # Apply alignment
+        self.scriptEdit.setAlignment(Qt.AlignRight)
+        
+        # Track state
+        self.prevFormatState = "Transition"
         self.setChecked(self.prevFormatState)
         
     # ----- FORMAT HELPERS -----
@@ -578,6 +676,26 @@ class Main(QMainWindow):
                 toSet.deleteChar()
             return
             
+    def changeColon(self, toSet, changeMode):
+        # initializing
+        hasColon = False
+            
+        toSet.select(QTextCursor.BlockUnderCursor)
+        toCheckBlock = toSet.selectedText().strip()
+        if (toCheckBlock.endswith(":")):
+            hasColon = True
+         
+        if (changeMode):
+            if (not hasColon):
+                toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                toSet.insertText(":")
+        else:
+            if (hasColon):
+                toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                toSet.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor)
+                toSet.deleteChar()
+            return
+            
     def capitalizeFirst(self, toSet):
         # CAUTION! Apart from capitalizing the first letter, 
         # this function appears to remove all other formatting
@@ -585,6 +703,9 @@ class Main(QMainWindow):
         selectedText = toSet.selectedText().strip()
         if (len(selectedText) >= 1):
             modifiedText = selectedText.split()[0].capitalize()
+            print(toSet.blockNumber())
+            if (toSet.blockNumber() > 0):       # Only add a newline if this block is after the first line
+                modifiedText = "\n" + modifiedText
             toSet.deleteChar()
             toSet.insertText(modifiedText)
         
@@ -593,6 +714,8 @@ class Main(QMainWindow):
         self.characterFormatAction.setChecked(False)
         self.dialogueFormatAction.setChecked(False)
         self.paranthesisFormatAction.setChecked(False)
+        self.headingFormatAction.setChecked(False)
+        self.transitionFormatAction.setChecked(False)
         
         if (newState == "Action"):
             self.actionFormatAction.setChecked(True)
@@ -602,6 +725,10 @@ class Main(QMainWindow):
             self.dialogueFormatAction.setChecked(True)
         elif (newState == "Paranthesis"):
             self.paranthesisFormatAction.setChecked(True)
+        elif (newState == "Heading"):
+            self.headingFormatAction.setChecked(True)
+        elif (newState == "Transition"):
+            self.transitionFormatAction.setChecked(True)
  
 def main():
     app = QApplication(sys.argv)
@@ -613,12 +740,13 @@ if __name__ == "__main__":
     main()
 
 # To do:
-# [ ] SCENE HEADING (centered, upper case)
+# [X] SCENE HEADING (centered, upper case)
 # [X] Action (left aligned, regular case)
 # [x] CHARACTER (left aligned indented, upper case)
 # [x] Dialogue (left aligned less indented, regular case)
 # [X] (Paranthetical) (centered, in brackets, italics?)
-# [ ] TRANSITION (right aligned, uppercase)
+# [X] TRANSITION (right aligned, uppercase)
 # [X] Set page size
+# [ ] Make shortcuts customizable (external text editor)
 # [ ] Auto complete character names
 # [X] Shortcut to switch styles
