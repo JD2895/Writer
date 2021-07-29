@@ -469,6 +469,8 @@ class Main(QMainWindow):
         toSet.setCharFormat(self.actionFormat)
         
         # Return cursor to it's original position
+        #if (toSetOgPosition > len(toSet.selectedText())):
+        #    toSetOgPosition = len(toSet.selectedText())
         toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
         
         # Block format
@@ -533,8 +535,9 @@ class Main(QMainWindow):
         toSet.setCharFormat(self.paranthesisFormat)
         
         # Return cursor to it's original position
-        if (toSetOgPosition == 0):
-            toSetOgPosition += 1
+        toSetOgPosition += 1
+        #if (toSetOgPosition > len(toSet.selectedText())):
+        #    toSetOgPosition = len(toSet.selectedText())
         toSet.setPosition(toSetOgPosition, QTextCursor.MoveAnchor)
         
         # Block format
@@ -703,7 +706,6 @@ class Main(QMainWindow):
         selectedText = toSet.selectedText().strip()
         if (len(selectedText) >= 1):
             modifiedText = selectedText.split()[0].capitalize()
-            print(toSet.blockNumber())
             if (toSet.blockNumber() > 0):       # Only add a newline if this block is after the first line
                 modifiedText = "\n" + modifiedText
             toSet.deleteChar()
@@ -750,3 +752,5 @@ if __name__ == "__main__":
 # [ ] Make shortcuts customizable (external text editor)
 # [ ] Auto complete character names
 # [X] Shortcut to switch styles
+# [ ] bug: index out of range when cursor is at end of line when going from paranthesis to action
+# [ ] bug: going from paranthesis to anything else moves the cursor forward one
