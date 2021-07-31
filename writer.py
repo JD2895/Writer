@@ -736,6 +736,7 @@ class Main(QMainWindow):
         #print("blk pos: " + str(blockPosition))
         
         toSet.select(QTextCursor.BlockUnderCursor)
+        print(toSet.selectedText())
         blockLength = len(toSet.selectedText()) # On every line but the first, block length includes "\n"
         #print("blk len: " + str(blockLength))
         
