@@ -1,4 +1,5 @@
 import sys
+from enum import Enum
 from PyQt5 import (QtGui, QtCore)
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
@@ -28,6 +29,7 @@ class Main(QMainWindow):
         self.scriptEdit.setFontFamily("Courier")
         self.scriptEdit.setFontPointSize(12)
         self.scriptEdit.setMaximumWidth(660)
+        self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)
          
         # Setting/Adding toolbars
         self.initToolbar()
@@ -407,6 +409,7 @@ class Main(QMainWindow):
         self.actionFormat.setFontCapitalization(QFont.MixedCase)     #First letter is capitalized later
         self.actionFormat.setFontItalic(False)
         self.actionFormat.setFontUnderline(False)
+        self.actionFormat.setFontLetterSpacing(101)
         
         self.characterFormat = QTextCharFormat();
         self.characterFormat.setFontFamily("Courier")
@@ -421,6 +424,7 @@ class Main(QMainWindow):
         self.dialogueFormat.setFontCapitalization(QFont.MixedCase)   #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
         self.dialogueFormat.setFontUnderline(False)
+        self.actionFormat.setFontLetterSpacing(100)
         
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
@@ -461,7 +465,7 @@ class Main(QMainWindow):
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
-        self.changeParenthesied(toSet, False)
+        self.changeParenthesis(toSet, False)
         self.changeColon(toSet, False)
         
         # Line format
@@ -494,11 +498,12 @@ class Main(QMainWindow):
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
-        self.changeParenthesied(toSet, False)
+        self.changeParenthesis(toSet, False)
         self.changeColon(toSet, False)
         
         # Line format
         toSet.select(QTextCursor.BlockUnderCursor)
+        #toSet.setBlockCharFormat(self.characterFormat)
         toSet.setCharFormat(self.characterFormat)
         
         # Return cursor to it's original position
@@ -527,7 +532,7 @@ class Main(QMainWindow):
         
         # Special character check
         self.changeColon(toSet, False)
-        self.changeParenthesied(toSet, True)
+        self.changeParenthesis(toSet, True)
         
         # Line format
         toSet.select(QTextCursor.BlockUnderCursor)
@@ -559,7 +564,7 @@ class Main(QMainWindow):
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
-        self.changeParenthesied(toSet, False)
+        self.changeParenthesis(toSet, False)
         self.changeColon(toSet, False)
         
         # Line format
@@ -592,7 +597,7 @@ class Main(QMainWindow):
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
-        self.changeParenthesied(toSet, False)
+        self.changeParenthesis(toSet, False)
         self.changeColon(toSet, False)
         
         # Line format
@@ -618,14 +623,14 @@ class Main(QMainWindow):
         self.setChecked(self.prevFormatState)
         
     
-    def formatTransition(self):
+    def formatTransition(self, changeCursor):
         # Setup
-        toSet = self.scriptEdit.textCursor()
-        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, "Transition")
-        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
+        ##toSet = self.scriptEdit.textCursor()
+        ##toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, "Transition")
+        toSetBlockFmt = changeCursor.blockFormat()
         
         # Special character check
-        self.changeParenthesied(toSet, False)
+        self.changeParenthesis(toSet, False)
         self.changeColon(toSet, True)
         
         # Line format
@@ -651,8 +656,45 @@ class Main(QMainWindow):
         self.setChecked(self.prevFormatState)
         
     # ----- FORMAT HELPERS -----
-    def changeParenthesied(self, toSet, changeMode):
+    def changeFormatTo(self, newFormat):
+        # Get cursor
+        toSet = self.scriptEdit.textCursor()
+        
+        # Get/Init cursor position data
+        self.cursorStartPosition = toSet.selectionStart
+        self.newCharactersBehindStart = 0
+        self.cursorEndPosition = toSet.selectionEnd()
+        self.newCharactersBehindEnd = 0
+        #toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, newFormat
+        
+        # Get number of blocks to change
+        startingBlock = 0
+        endingBlock = 0
+        if (self.cursorStartPosition != self.cursorEndPosition):
+            toSet.setPosition(self.cursorStartPosition, 0)
+            startingBlock = toSet.blockNumber()
+            toSet.setPosition(self.cursorEndPosition, 0)
+            endingBlock = toSet.blockNumber()
+        else:
+            toSet.setPosition(self.cursorStartPosition, 0)
+            startingBlock = toSet.blockNumber()
+            endingBlock = startingBlock
+        
+        # Go through all selected blocks
+        while (startingBlock <= endingBlock):
+            toSet.setPosition(self.cursorStartPosition, 0)
+            
+            if (self.nextFormat == Format.Paranthesis):
+                changeParenthesis(toSet, True)
+            else:
+                changeParenthesis(toSet, False)
+            
+                startingBlock += 1
+        
+        
+    def changeParenthesis(self, toSet, changeMode):
         # initializing
+        charactersChanged = 0
         hasBrackets = False
             
         toSet.select(QTextCursor.BlockUnderCursor)
@@ -667,6 +709,7 @@ class Main(QMainWindow):
                 toSet.insertText("(")
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
                 toSet.insertText(")")
+                charactersChanged = 2
         else:
             if (hasBrackets):
                 toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
@@ -674,7 +717,9 @@ class Main(QMainWindow):
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
                 toSet.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor)
                 toSet.deleteChar()
-            return
+                charactersChanged = -2
+                
+        return charactersChanged
             
     def changeColon(self, toSet, changeMode):
         # initializing
@@ -707,6 +752,27 @@ class Main(QMainWindow):
                 modifiedText = "\n" + modifiedText
             toSet.deleteChar()
             toSet.insertText(modifiedText)
+            
+    def detectFormat(self):
+        # Get cursor
+        toDetect = self.scriptEdit.textCursor()
+        #toDetect.select(QTextCursor.BlockUnderCursor)
+        blockFormat = toDetect.charFormat()
+        
+        if (blockFormat == self.actionFormat):
+            self.setChecked("Action")
+        elif (blockFormat == self.characterFormat):
+            self.setChecked("Character")
+        elif (blockFormat == self.dialogueFormat):
+            self.setChecked("Dialogue")
+        elif (blockFormat == self.paranthesisFormat):
+            self.setChecked("Paranthesis")
+        elif (blockFormat == self.headingFormat):
+            self.setChecked("Heading")
+        elif (blockFormat == self.transitionFormat):
+            self.setChecked("Transition")
+            
+        print("\n")
         
     def setChecked(self, newState):
         self.actionFormatAction.setChecked(False)
@@ -769,6 +835,14 @@ class Main(QMainWindow):
         #print("new pos: " + str(newPosition))
         #print("\n")
         return newPosition
+        
+class Format(Enum):
+    Action = 0
+    Character = 1
+    Dialogue = 2
+    Paranthesis = 3
+    Heading = 4
+    Transition = 5
         
 def main():
     app = QApplication(sys.argv)
