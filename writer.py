@@ -15,13 +15,13 @@ class Main(QMainWindow):
         QMainWindow.__init__(self,parent)
         self.setMinimumWidth(800)
         self.filename = ""
-        self.prevFormatState = FormatType.Action
+        self.prevFormatState = FormatState.Action
         
         self.setFontFormats()
         self.initUI()
         
         # Set starting format
-        self.formatAction()
+        self.setStartingFormat()
  
     def initUI(self):
         # Initialising script editor widget
@@ -158,7 +158,7 @@ class Main(QMainWindow):
         # Action
         self.actionFormatAction = QAction("Action",self)
         self.actionFormatAction.setCheckable(True)
-        self.actionFormatAction.triggered.connect(self.formatAction)
+        self.actionFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Action))
         self.actionFormatAction.setShortcut("Alt+1")
         # Character
         self.characterFormatAction = QAction("Character",self)
@@ -173,7 +173,7 @@ class Main(QMainWindow):
         # Paranthesis
         self.paranthesisFormatAction = QAction("Paranthesis",self)
         self.paranthesisFormatAction.setCheckable(True)
-        self.paranthesisFormatAction.triggered.connect(self.formatParanthesis)
+        self.paranthesisFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Paranthesis))
         self.paranthesisFormatAction.setShortcut("Alt+4")
         # Heading
         self.headingFormatAction = QAction("Heading",self)
@@ -183,7 +183,7 @@ class Main(QMainWindow):
         # Transition
         self.transitionFormatAction = QAction("Transition",self)
         self.transitionFormatAction.setCheckable(True)
-        self.transitionFormatAction.triggered.connect(self.formatTransition)
+        self.transitionFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Transition))
         self.transitionFormatAction.setShortcut("Alt+6")
         # Change Styles
         self.changeStyleAction = QAction("Change Style",self)
@@ -424,7 +424,6 @@ class Main(QMainWindow):
         self.dialogueFormat.setFontCapitalization(QFont.MixedCase)  #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
         self.dialogueFormat.setFontUnderline(False)
-        self.actionFormat.setFontLetterSpacing(100)                 #Added a small change to differentiate from Action
         
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
@@ -446,55 +445,48 @@ class Main(QMainWindow):
         self.transitionFormat.setFontCapitalization(QFont.AllUppercase)
         self.transitionFormat.setFontItalic(False)
         self.transitionFormat.setFontUnderline(False)
+        self.transitionFormat.setFontLetterSpacing(101)             #Added a small change to differentiate from Character
         
     def changeStyle(self):
-        if (self.prevFormatState == FormatType.Action):
+        if (self.prevFormatState == FormatState.Action):
             self.formatCharacter()
-        elif (self.prevFormatState == FormatType.Character):
+        elif (self.prevFormatState == FormatState.Character):
             self.formatDialogue()
-        elif (self.prevFormatState == FormatType.Paranthesis):
+        elif (self.prevFormatState == FormatState.Paranthesis):
             self.formatDialogue()
-        elif (self.prevFormatState == FormatType.Dialogue):
+        elif (self.prevFormatState == FormatState.Dialogue):
             self.formatAction()
         
-    def formatAction(self):
+    def formatAction(self, changeCursor):
         # Setup
-        toSet = self.scriptEdit.textCursor()
-        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatType.Action)
-        #toSetReturnPosition = toSet.position()
-        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
-        
-        # Special character check
-        self.changeParenthesis(toSet, False)
-        self.changeColon(toSet, False)
+        toSetReturnPosition = changeCursor.position()
+        toSetBlockFmt = changeCursor.blockFormat()
         
         # Line format
-        self.capitalizeFirst(toSet)
-        toSet.select(QTextCursor.BlockUnderCursor)
-        toSet.setCharFormat(self.actionFormat)
-        
+        self.capitalizeFirst(changeCursor)
+        changeCursor.select(QTextCursor.BlockUnderCursor)
+        changeCursor.setCharFormat(self.actionFormat)
+                
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        changeCursor.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(0)
         toSetBlockFmt.setRightMargin(0)
+        toSetBlockFmt.setAlignment(Qt.AlignLeft)
         
         # Apply the changes
-        toSet.setBlockFormat(toSetBlockFmt)
-        self.scriptEdit.setTextCursor(toSet)
-        
-        # Apply alignment
-        self.scriptEdit.setAlignment(Qt.AlignLeft)
-        
+        changeCursor.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(changeCursor)
+                
         # Track state
-        self.prevFormatState = FormatType.Action
+        self.prevFormatState = FormatState.Action
         self.setChecked(self.prevFormatState)
         
     def formatCharacter(self):
         # Setup
         toSet = self.scriptEdit.textCursor()
-        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatType.Character)
+        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatState.Character)
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
@@ -507,7 +499,7 @@ class Main(QMainWindow):
         toSet.setCharFormat(self.characterFormat)
         
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        toSet.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(240)
@@ -521,46 +513,38 @@ class Main(QMainWindow):
         self.scriptEdit.setAlignment(Qt.AlignLeft)
         
         # Track state
-        self.prevFormatState = FormatType.Character
+        self.prevFormatState = FormatState.Character
         self.setChecked(self.prevFormatState)
        
-    def formatParanthesis(self):
+    def formatParanthesis(self, changeCursor):
         # Setup
-        toSet = self.scriptEdit.textCursor()
-        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatType.Paranthesis)
-        toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
-        
-        # Special character check
-        self.changeColon(toSet, False)
-        self.changeParenthesis(toSet, True)
+        toSetReturnPosition = changeCursor.position()
+        toSetBlockFmt = changeCursor.blockFormat()
         
         # Line format
-        toSet.select(QTextCursor.BlockUnderCursor)
-        #print(toSet.selectedText())
-        toSet.setCharFormat(self.paranthesisFormat)
+        changeCursor.select(QTextCursor.BlockUnderCursor)
+        changeCursor.setCharFormat(self.paranthesisFormat)
         
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        changeCursor.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(190)
         toSetBlockFmt.setRightMargin(190)
+        toSetBlockFmt.setAlignment(Qt.AlignLeft)
         
         # Apply the changes
-        toSet.setBlockFormat(toSetBlockFmt)
-        self.scriptEdit.setTextCursor(toSet)
-        
-        # Apply alignment
-        self.scriptEdit.setAlignment(Qt.AlignLeft)
-        
+        changeCursor.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(changeCursor)
+                
         # Track state
-        self.prevFormatState = FormatType.Paranthesis
+        self.prevFormatState = FormatState.Paranthesis
         self.setChecked(self.prevFormatState)
         
     def formatDialogue(self):
         # Setup
         toSet = self.scriptEdit.textCursor()
-        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatType.Dialogue)
+        toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, FormatState.Dialogue)
         toSetBlockFmt = self.scriptEdit.textCursor().blockFormat()
         
         # Special character check
@@ -573,7 +557,7 @@ class Main(QMainWindow):
         toSet.setCharFormat(self.dialogueFormat)
         
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        toSet.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(120)
@@ -587,7 +571,7 @@ class Main(QMainWindow):
         self.scriptEdit.setAlignment(Qt.AlignLeft)
         
         # Track state
-        self.prevFormatState = FormatType.Dialogue
+        self.prevFormatState = FormatState.Dialogue
         self.setChecked(self.prevFormatState)
         
     def formatHeading(self):
@@ -605,7 +589,7 @@ class Main(QMainWindow):
         toSet.setCharFormat(self.headingFormat)
         
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        toSet.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(0)
@@ -619,82 +603,112 @@ class Main(QMainWindow):
         self.scriptEdit.setAlignment(Qt.AlignCenter)
         
         # Track state
-        self.prevFormatState = FormatType.Heading
+        self.prevFormatState = FormatState.Heading
         self.setChecked(self.prevFormatState)
         
-    
     def formatTransition(self, changeCursor):
         # Setup
-        ##toSet = self.scriptEdit.textCursor()
-        ##toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, "Transition")
+        toSetReturnPosition = changeCursor.position()
         toSetBlockFmt = changeCursor.blockFormat()
         
-        # Special character check
-        self.changeParenthesis(toSet, False)
-        self.changeColon(toSet, True)
-        
         # Line format
-        toSet.select(QTextCursor.BlockUnderCursor)
-        toSet.setCharFormat(self.transitionFormat)
+        changeCursor.select(QTextCursor.BlockUnderCursor)
+        changeCursor.setCharFormat(self.transitionFormat)
         
         # Return cursor to it's original position
-        toSet.setPosition(toSetReturnPosition, QTextCursor.MoveAnchor)
+        changeCursor.setPosition(toSetReturnPosition)
         
         # Block format
         toSetBlockFmt.setLeftMargin(0)
         toSetBlockFmt.setRightMargin(0)
+        toSetBlockFmt.setAlignment(Qt.AlignRight)
         
         # Apply changes
-        toSet.setBlockFormat(toSetBlockFmt)
-        self.scriptEdit.setTextCursor(toSet)
-        
-        # Apply alignment
-        self.scriptEdit.setAlignment(Qt.AlignRight)
-        
+        changeCursor.setBlockFormat(toSetBlockFmt)
+        self.scriptEdit.setTextCursor(changeCursor)
+                
         # Track state
-        self.prevFormatState = FormatType.Transition
+        self.prevFormatState = FormatState.Transition
         self.setChecked(self.prevFormatState)
         
     # ----- FORMAT HELPERS -----
-    def changeFormatTo(self, newFormat):
+    def changeFormatTo(self, newFormatState):
         # Get cursor
         toSet = self.scriptEdit.textCursor()
         
         # Get/Init cursor position data
-        self.cursorStartPosition = toSet.selectionStart
+        self.cursorStartPosition = toSet.selectionStart()
         self.newCharactersBehindStart = 0
         self.cursorEndPosition = toSet.selectionEnd()
         self.newCharactersBehindEnd = 0
-        #toSetReturnPosition = self.setReturningPosition(toSet, self.prevFormatState, newFormat
+        #print(self.cursorStartPosition)
+        #print(self.cursorEndPosition)
         
         # Get number of blocks to change
         startingBlock = 0
         endingBlock = 0
         if (self.cursorStartPosition != self.cursorEndPosition):
-            toSet.setPosition(self.cursorStartPosition, 0)
+            toSet.setPosition(self.cursorStartPosition)
             startingBlock = toSet.blockNumber()
-            toSet.setPosition(self.cursorEndPosition, 0)
+            toSet.setPosition(self.cursorEndPosition)
             endingBlock = toSet.blockNumber()
         else:
-            toSet.setPosition(self.cursorStartPosition, 0)
+            toSet.setPosition(self.cursorStartPosition)
             startingBlock = toSet.blockNumber()
             endingBlock = startingBlock
+            
+        print(startingBlock)
+        print(endingBlock)
         
         # Go through all selected blocks
+        toSet.setPosition(self.cursorStartPosition)
         while (startingBlock <= endingBlock):
-            toSet.setPosition(self.cursorStartPosition, 0)
-            
-            if (newFormat == FormatType.Paranthesis):
-                changeParenthesis(toSet, True)
-            else:
-                changeParenthesis(toSet, False)
-            
-                startingBlock += 1
         
+            if (self.prevFormatState == FormatState.Paranthesis and newFormatState != FormatState.Paranthesis):
+                self.changeParenthesis(toSet, False)
+                        
+            if (self.prevFormatState == FormatState.Transition and newFormatState != FormatState.Transition):
+                self.changeColon(toSet, False)
+            
+            # Apply format
+            if (newFormatState == FormatState.Action):
+                self.formatAction(toSet)
+            if (newFormatState == FormatState.Paranthesis):
+                self.changeParenthesis(toSet, True)
+                self.formatParanthesis(toSet)
+            elif (newFormatState == FormatState.Transition):
+                self.changeColon(toSet, True)
+                self.formatTransition(toSet)
+            
+            startingBlock += 1
+            toSet.movePosition(QTextCursor.NextBlock)
+            
+        # Set cursor positions
+        if (self.cursorStartPosition == self.cursorEndPosition):
+            self.cursorStartPosition += self.newCharactersBehindStart
+            toSet.setPosition(self.cursorStartPosition)
+        else:
+            self.cursorStartPosition += self.newCharactersBehindStart
+            toSet.setPosition(self.cursorStartPosition)
+            self.cursorEndPosition += self.newCharactersBehindEnd
+            toSet.setPosition(self.cursorEndPosition, QTextCursor.KeepAnchor)
+            
+        # Apply changes
+        self.scriptEdit.setTextCursor(toSet)
+            
+        #print(self.cursorStartPosition)
+        #print(self.cursorEndPosition)
+        print("/n")
+                
+    def trackChangesBeforeCursor(self, currentPosition, valueChange):
+        if (currentPosition < self.cursorStartPosition):
+            self.newCharactersBehindStart += valueChange
+        if (currentPosition < self.cursorEndPosition):
+            self.newCharactersBehindEnd += valueChange
         
     def changeParenthesis(self, toSet, changeMode):
         # initializing
-        charactersChanged = 0
+        #charactersChanged = 0
         hasBrackets = False
             
         toSet.select(QTextCursor.BlockUnderCursor)
@@ -706,20 +720,24 @@ class Main(QMainWindow):
         if (changeMode):
             if (not hasBrackets):
                 toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), 1) 
                 toSet.insertText("(")
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), 1) 
                 toSet.insertText(")")
-                charactersChanged = 2
+                #charactersChanged = 2
         else:
             if (hasBrackets):
                 toSet.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), -1) 
                 toSet.deleteChar()
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), -1) 
                 toSet.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor)
                 toSet.deleteChar()
-                charactersChanged = -2
+                #charactersChanged = -2
                 
-        return charactersChanged
+        #return charactersChanged
             
     def changeColon(self, toSet, changeMode):
         # initializing
@@ -733,46 +751,66 @@ class Main(QMainWindow):
         if (changeMode):
             if (not hasColon):
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), 1) 
                 toSet.insertText(":")
         else:
             if (hasColon):
                 toSet.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+                self.trackChangesBeforeCursor(toSet.position(), -1) 
                 toSet.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor)
                 toSet.deleteChar()
             return
             
-    def capitalizeFirst(self, toSet):
+    def capitalizeFirst(self, toCap):
         # CAUTION! Apart from capitalizing the first letter, 
         # this function appears to remove all other formatting
-        toSet.select(QTextCursor.BlockUnderCursor)
-        selectedText = toSet.selectedText().strip()
-        if (len(selectedText) >= 1):
-            modifiedText = selectedText.split()[0].capitalize()
-            if (toSet.blockNumber() > 0):       # Only add a newline if this block is after the first line
-                modifiedText = "\n" + modifiedText
-            toSet.deleteChar()
-            toSet.insertText(modifiedText)
+        toCap.select(QTextCursor.BlockUnderCursor)
+        #print(toCap.selectedText())#
+        selectedText = toCap.selectedText().strip()
+        sentences = selectedText.split(".")
+        #print(selectedText)
+        capitalizedBlock = ""
+        if (sentences):#and len(sentences[0]) >= 1):  # Check if the list is empty
+            for sentence in sentences:
+                capitalizedBlock += sentence.capitalize()
+                if (len(sentences) > 1):
+                    capitalizedBlock += ". "
+                
+            if (toCap.blockNumber() > 0):       # Only add a newline if this block is after the first line
+                capitalizedBlock = "\n" + capitalizedBlock
+            
+            toCap.deleteChar()
+            toCap.insertText(capitalizedBlock)
             
     def detectFormat(self):
         # Get cursor
         toDetect = self.scriptEdit.textCursor()
-        #toDetect.select(QTextCursor.BlockUnderCursor)
         blockFormat = toDetect.charFormat()
+        detectedType = 0
         
         if (blockFormat == self.actionFormat):
-            self.setChecked(FormatType.Action)
+            self.setChecked(FormatState.Action)
+            detectedType = FormatState.Action
         elif (blockFormat == self.characterFormat):
-            self.setChecked(FormatType.Character)
+            self.setChecked(FormatState.Character)
+            detectedType = FormatState.Character
         elif (blockFormat == self.dialogueFormat):
-            self.setChecked(FormatType.Dialogue)
+            self.setChecked(FormatState.Dialogue)
+            detectedType = FormatState.Dialogue
         elif (blockFormat == self.paranthesisFormat):
-            self.setChecked(FormatType.Paranthesis)
+            self.setChecked(FormatState.Paranthesis)
+            detectedType = FormatState.Paranthesis
         elif (blockFormat == self.headingFormat):
-            self.setChecked(FormatType.Heading)
+            self.setChecked(FormatState.Heading)
+            detectedType = FormatState.Heading
         elif (blockFormat == self.transitionFormat):
-            self.setChecked(FormatType.Transition)
+            self.setChecked(FormatState.Transition)
+            detectedType = FormatState.Transition
+        else:
+            self.setChecked(FormatState.NoState)
+            detectedType = FormatState.NoState
             
-        print("\n")
+        return detectedType
         
     def setChecked(self, newState):
         self.actionFormatAction.setChecked(False)
@@ -782,18 +820,25 @@ class Main(QMainWindow):
         self.headingFormatAction.setChecked(False)
         self.transitionFormatAction.setChecked(False)
         
-        if (newState == FormatType.Action):
+        if (newState == FormatState.Action):
             self.actionFormatAction.setChecked(True)
-        elif (newState == FormatType.Character):
+        elif (newState == FormatState.Character):
             self.characterFormatAction.setChecked(True)
-        elif (newState == FormatType.Dialogue):
+        elif (newState == FormatState.Dialogue):
             self.dialogueFormatAction.setChecked(True)
-        elif (newState == FormatType.Paranthesis):
+        elif (newState == FormatState.Paranthesis):
             self.paranthesisFormatAction.setChecked(True)
-        elif (newState == FormatType.Heading):
+        elif (newState == FormatState.Heading):
             self.headingFormatAction.setChecked(True)
-        elif (newState == FormatType.Transition):
+        elif (newState == FormatState.Transition):
             self.transitionFormatAction.setChecked(True)
+            
+    def setStartingFormat(self):
+        toStart = self.scriptEdit.textCursor()
+        startingType = self.detectFormat()
+        if (startingType == FormatState.NoState):
+            self.formatAction(toStart)
+            self.setChecked(FormatState.Action)
             
     def setReturningPosition(self, toSet, previousState, newState):
         absolutePosition = toSet.position()
@@ -802,7 +847,7 @@ class Main(QMainWindow):
         #print("blk pos: " + str(blockPosition))
         
         toSet.select(QTextCursor.BlockUnderCursor)
-        print(toSet.selectedText())
+        #print(toSet.selectedText())
         blockLength = len(toSet.selectedText()) # On every line but the first, block length includes "\n"
         #print("blk len: " + str(blockLength))
         
@@ -817,17 +862,17 @@ class Main(QMainWindow):
         if ((absolutePosition == 0) or (absolutePosition <= blockLength and blockPosition != 0)):
             isFirstLine = 1
             
-        if (previousState == FormatType.Paranthesis and newState != FormatType.Paranthesis):
+        if (previousState == FormatState.Paranthesis and newState != FormatState.Paranthesis):
             if (toCheckBlock.startswith("(") and toCheckBlock.endswith(")")):
                 if (blockPosition == (blockLength - 1 + isFirstLine)): # End of a Paranthesis line
                     newPosition -= 2
                 elif (blockPosition > 0):    # Anywhere after first bracket
                     newPosition -=1
         
-        if (previousState != FormatType.Paranthesis and newState == FormatType.Paranthesis):
+        if (previousState != FormatState.Paranthesis and newState == FormatState.Paranthesis):
             if not(toCheckBlock.startswith("(") and toCheckBlock.endswith(")")):
-                print("no brackets")
-                if (blockPosition == (blockLength - 1 + isFirstLine)) and (previousState == FormatType.Transition):
+                #print("no brackets")
+                if (blockPosition == (blockLength - 1 + isFirstLine)) and (previousState == FormatState.Transition):
                     newPosition += 0
                 else:
                     newPosition +=1
@@ -836,13 +881,14 @@ class Main(QMainWindow):
         #print("\n")
         return newPosition
         
-class FormatType(Enum):
+class FormatState(Enum):
     Action = 0
     Character = 1
     Dialogue = 2
     Paranthesis = 3
     Heading = 4
     Transition = 5
+    NoState = 6
         
 def main():
     app = QApplication(sys.argv)
