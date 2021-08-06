@@ -566,6 +566,7 @@ class Main(QMainWindow):
         
         # Apply the changes
         changeCursor.setBlockFormat(self.characterBlock)
+        ##changeCursor.setBlockCharFormat(self.characterFormat)
         self.scriptEdit.setTextCursor(changeCursor)
         
         # Track state
@@ -605,6 +606,7 @@ class Main(QMainWindow):
                 
         # Apply the changes
         changeCursor.setBlockFormat(self.dialogueBlock)
+        ##changeCursor.setBlockCharFormat(self.dialogueFormat)
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
@@ -697,21 +699,37 @@ class Main(QMainWindow):
         # Go through all selected blocks
         toSet.setPosition(self.cursorStartPosition)
         while (startingBlock <= endingBlock):
-        
+            # Parantheses check
             if (self.prevFormatState == FormatState.Paranthesis and newFormatState != FormatState.Paranthesis):
                 self.changeParenthesis(toSet, False)
-                        
+            # Colon check           
             if (self.prevFormatState == FormatState.Transition and newFormatState != FormatState.Transition):
                 self.changeColon(toSet, False)
+                
+            # Empty Line check
+            toSet.select(QTextCursor.LineUnderCursor)
+            emptyLine = (toSet.selectedText() == "")
             
             # Apply format
             if (newFormatState == FormatState.Action):
+                if (emptyLine):
+                    toSet.setBlockCharFormat(self.actionFormat)
+                    self.scriptEdit.setTextCursor(toSet)
                 self.formatAction(toSet)
             elif (newFormatState == FormatState.Character):
+                if (emptyLine):
+                    toSet.setBlockCharFormat(self.characterFormat)
+                    self.scriptEdit.setTextCursor(toSet)
                 self.formatCharacter(toSet)
             elif (newFormatState == FormatState.Dialogue):
+                if (emptyLine):
+                    toSet.setBlockCharFormat(self.dialogueFormat)
+                    self.scriptEdit.setTextCursor(toSet)
                 self.formatDialogue(toSet)
             elif (newFormatState == FormatState.Heading):
+                if (emptyLine):
+                    toSet.setBlockCharFormat(self.headingFormat)
+                    self.scriptEdit.setTextCursor(toSet)
                 self.formatHeading(toSet)
             elif (newFormatState == FormatState.Paranthesis):
                 self.changeParenthesis(toSet, True)
