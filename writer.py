@@ -202,6 +202,12 @@ class Main(QMainWindow):
         self.customNewLineStyleAction.triggered.connect(self.customNewLineStyle)
         seq = QKeySequence(Qt.ALT+Qt.Key_Return)
         self.customNewLineStyleAction.setShortcut(seq)
+        # Auto format toggle
+        self.autoFormatOnLineChange = True
+        self.autoFormatAction = QAction("Auto-Format",self)
+        self.autoFormatAction.setCheckable(True)
+        self.autoFormatAction.setChecked(self.autoFormatOnLineChange)
+        self.autoFormatAction.triggered.connect(self.setAutoFormat)
         
         # Bold
         boldAction = QAction(QtGui.QIcon("icons/bold.png"),"Bold",self)
@@ -247,6 +253,9 @@ class Main(QMainWindow):
         self.formatbar.addAction(self.transitionFormatAction)
         self.addAction(self.changeStyleAction)       # added this way to keep it hidden
         self.addAction(self.customNewLineStyleAction)       # added this way to keep it hidden
+        self.formatbar.addSeparator()
+        
+        self.formatbar.addAction(self.autoFormatAction)
         self.formatbar.addSeparator()
         
         self.formatbar.addAction(boldAction)
@@ -848,7 +857,8 @@ class Main(QMainWindow):
             else:
                 detectedType = 7
                 # if no format is detected, force previous format
-                self.changeFormatTo(self.prevFormatState)
+                if (self.autoFormatOnLineChange):
+                    self.changeFormatTo(self.prevFormatState)
                 ## if (toDetect.position() == 0):
                 ##    print(toDetect.position())
             
@@ -856,6 +866,10 @@ class Main(QMainWindow):
                 self.prevFormatState = detectedType
             
         return detectedType
+        
+    def setAutoFormat(self):
+        self.autoFormatOnLineChange = not self.autoFormatOnLineChange
+        self.autoFormatAction.setChecked(self.autoFormatOnLineChange)
         
     def setChecked(self, newState):
         self.actionFormatAction.setChecked(False)
