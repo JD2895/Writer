@@ -1,19 +1,25 @@
 import sys
 from enum import Enum
 from PyQt5 import (QtGui, QtCore)
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (Qt)
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
                              QFileDialog, QDialog, QFontComboBox, QComboBox,
                              QColorDialog, QGridLayout,
-                             QHBoxLayout, QLabel, QWidget)  # Layout)                         
+                             QHBoxLayout, QLabel, QWidget,  # Layout
+                             QUndoStack, QUndoCommand     # Undo
+                             )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
-                         QKeySequence)  # Shortcuts
+                         QKeySequence,  # Shortcuts
+                        )  
 
 class Main(QMainWindow):
     def __init__(self, parent = None):
         QMainWindow.__init__(self,parent)
+        
+        self.undoStack = QUndoStack()
+        
         self.setMinimumWidth(800)
         self.filename = ""
         self.prevFormatState = FormatState.Action
@@ -109,13 +115,13 @@ class Main(QMainWindow):
         self.undoAction = QAction(QtGui.QIcon("icons/undo.png"),"Undo last action",self)
         self.undoAction.setStatusTip("Undo last action")
         self.undoAction.setShortcut("Ctrl+Z")
-        self.undoAction.triggered.connect(self.scriptEdit.undo)
+        self.undoAction.triggered.connect(self.undoStack.undo)
         
         # Redo
         self.redoAction = QAction(QtGui.QIcon("icons/redo.png"),"Redo last undone thing",self)
         self.redoAction.setStatusTip("Redo last undone thing")
         self.redoAction.setShortcut("Ctrl+Y")
-        self.redoAction.triggered.connect(self.scriptEdit.redo)
+        self.redoAction.triggered.connect(self.undoStack.redo)
         
         # Bullet List [TO REMOVE]
         bulletAction = QAction(QtGui.QIcon("icons/bullet.png"),"Insert bullet List",self)
@@ -655,6 +661,10 @@ class Main(QMainWindow):
     def changeFormatTo(self, newFormatState, newLine = False):
         # Get cursor
         toSet = self.scriptEdit.textCursor()
+        
+        # Start tracking undo
+        formatUndo = QUndoCommand()
+        formatUndo.setText("Changing preset format")
         
         #Disable format detection during format changing
         self.detectionEnabled = False
