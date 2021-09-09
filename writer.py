@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
                              QFileDialog, QDialog, QFontComboBox, QComboBox,
                              QColorDialog, QGridLayout,
                              QHBoxLayout, QLabel, QWidget,  # Layout
-                             QUndoStack, QUndoCommand     # Undo
-                             )
+                             QUndoStack, QUndoCommand,     # Undo
+                             QCompleter)
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
