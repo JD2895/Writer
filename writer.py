@@ -38,13 +38,6 @@ class Main(QMainWindow):
         words = ["Second", "Tier", "Post"]
         completer = QCompleter(words, None)
         self.scriptEdit.setCompleter(completer)
-                
-        # self.scriptEdit = QTextEdit(self)
-        # self.scriptEdit.setStyleSheet("""
-            # QTextEdit {
-                # font: 12pt "Courier";
-            # }
-        # """)
         
         self.scriptEdit.setMaximumWidth(660)
         self.detectionEnabled = True
@@ -957,15 +950,12 @@ class CompletionTextEdit(QTextEdit):
         completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         completer.activated.connect(self.insertCompletion)
         self.completer = completer
-        ##self.activated.connect(self.completer, QtCore.SIGNAL("activated(const QString&)"), self.insertCompletion)
-
+        
     def insertCompletion(self, completion):
         tc = self.textCursor()
-        ##extra = (completion.length() - self.completer.completionPrefix().length())
         extra = (len(completion) - len(self.completer.completionPrefix()))
         tc.movePosition(QTextCursor.Left)
         tc.movePosition(QTextCursor.EndOfWord)
-        ##tc.insertText(completion.right(extra))
         tc.insertText(completion[-extra:])
         self.setTextCursor(tc)
 
@@ -989,21 +979,22 @@ class CompletionTextEdit(QTextEdit):
             QtCore.Qt.Key_Backtab):
                 event.ignore()
                 return
-
-        ## has ctrl-E been pressed??
-        isShortcut = (event.modifiers() == QtCore.Qt.ControlModifier and
-                      event.key() == QtCore.Qt.Key_E)
-        if (not self.completer or not isShortcut):
+        
+        ## only show suggestions for characters
+        print(self.parent().parent().characterFormatAction.isChecked())
+        if not self.parent().parent().characterFormatAction.isChecked():
             QTextEdit.keyPressEvent(self, event)
+            return
 
-        ## ctrl or shift key on it's own??
+        QTextEdit.keyPressEvent(self, event)
+
+        ## ctrl or shift key on it's own?
         ctrlOrShift = event.modifiers() in (QtCore.Qt.ControlModifier ,
                 QtCore.Qt.ShiftModifier)
-        if ctrlOrShift and event.text().isEmpty():
+        if ctrlOrShift and not event.text():
             # ctrl or shift key on it's own
             return
 
-        ##eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=") #end of word
         eow = "~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=" #end of word
 
         hasModifier = ((event.modifiers() != QtCore.Qt.NoModifier) and
@@ -1011,11 +1002,8 @@ class CompletionTextEdit(QTextEdit):
 
         completionPrefix = self.textUnderCursor()
 
-        ##if (not isShortcut and (hasModifier or event.text().isEmpty() or
-        if (not isShortcut and (hasModifier or not event.text() or
-        len(completionPrefix) < 1 or
-        ##eow.contains(event.text().right(1)))):
-        (event.text()[-1] in eow))):
+        if (hasModifier or not event.text() or
+        len(completionPrefix) < 1 or (event.text()[-1] in eow)):
             self.completer.popup().hide()
             return
 
