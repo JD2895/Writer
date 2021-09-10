@@ -16,17 +16,17 @@ STARTTEXT = ('This TextEdit provides autocompletions for words that have ' +
 'more than 3 characters.\nYou can trigger autocompletion using %s\n\n'''% (
 QKeySequence("Ctrl+E").toString(QKeySequence.NativeText)))
 
-class DictionaryCompleter(QCompleter):
-    def __init__(self, parent=None):
-        words = ["Apple", "Bottom", "Jeans"]
-        ## try:
-            ## f = open("/usr/share/dict/words","r")
-            ## for word in f:
-                ## words.append(word.strip())
-            ## f.close()
-        ## except IOError:
-            ## print ("dictionary not in anticipated location")
-        QCompleter.__init__(self, words, parent)
+# class DictionaryCompleter(QCompleter):
+    # def __init__(self, parent=None):
+        # wordsq = ["Apple", "Bottom", "Jeans"]
+        # ## try:
+            # ## f = open("/usr/share/dict/words","r")
+            # ## for word in f:
+                # ## words.append(word.strip())
+            # ## f.close()
+        # ## except IOError:
+            # ## print ("dictionary not in anticipated location")
+        # QCompleter.__init__(self, wordsq, parent)
 
 class CompletionTextEdit(QTextEdit):
     def __init__(self, parent=None):
@@ -121,7 +121,11 @@ class CompletionTextEdit(QTextEdit):
 if __name__ == "__main__":
 
     app = QApplication([])
-    completer = DictionaryCompleter()
+    
+    words = ["Second", "Tier", "Post"]
+    completer = QCompleter(words, None)
+    
+    #completer = DictionaryCompleter()
     te = CompletionTextEdit()
     te.setCompleter(completer)
     te.show()
