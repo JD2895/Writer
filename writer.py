@@ -23,6 +23,7 @@ class Main(QMainWindow):
         self.setMinimumWidth(800)
         self.filename = ""
         self.prevFormatState = FormatState.Action
+        self.currFormatState = FormatState.Action
         
         self.setFontFormats()
         self.setBlockFormats()
@@ -35,8 +36,8 @@ class Main(QMainWindow):
         # Initialising script editor widget
         
         self.scriptEdit = CompletionTextEdit()
-        words = ["Second", "Tier", "Post"]
-        completer = QCompleter(words, None)
+        self.characterList = ["ALEX", "BLAKE", "CHARLIE", "FRANKIE", "JESSIE", "RILEY"]
+        completer = QCompleter(self.characterList, None)
         self.scriptEdit.setCompleter(completer)
         
         self.scriptEdit.setMaximumWidth(660)
@@ -511,32 +512,31 @@ class Main(QMainWindow):
         self.transitionBlock.setAlignment(Qt.AlignRight)
         
     def changeStyle(self):
-        if (self.prevFormatState == FormatState.Action):
+        if (self.currFormatState == FormatState.Action):
             self.changeFormatTo(FormatState.Character)
-        elif (self.prevFormatState == FormatState.Character):
+        elif (self.currFormatState == FormatState.Character):
             self.changeFormatTo(FormatState.Dialogue)
-        elif (self.prevFormatState == FormatState.Dialogue):
+        elif (self.currFormatState == FormatState.Dialogue):
             self.changeFormatTo(FormatState.Paranthesis)
-        elif (self.prevFormatState == FormatState.Paranthesis):
+        elif (self.currFormatState == FormatState.Paranthesis):
             self.changeFormatTo(FormatState.Heading)
-        elif (self.prevFormatState == FormatState.Heading):
+        elif (self.currFormatState == FormatState.Heading):
             self.changeFormatTo(FormatState.Transition)
-        elif (self.prevFormatState == FormatState.Transition):
+        elif (self.currFormatState == FormatState.Transition):
             self.changeFormatTo(FormatState.Action)
             
     def customNewLineStyle(self):
-        print("in here")
-        if (self.prevFormatState == FormatState.Action):
+        if (self.currFormatState == FormatState.Action):
             self.changeFormatTo(FormatState.Action, True)
-        elif (self.prevFormatState == FormatState.Character):
+        elif (self.currFormatState == FormatState.Character):
             self.changeFormatTo(FormatState.Dialogue, True)
-        elif (self.prevFormatState == FormatState.Dialogue):
+        elif (self.currFormatState == FormatState.Dialogue):
             self.changeFormatTo(FormatState.Action, True)
-        elif (self.prevFormatState == FormatState.Paranthesis):
+        elif (self.currFormatState == FormatState.Paranthesis):
             self.changeFormatTo(FormatState.Dialogue, True)
-        elif (self.prevFormatState == FormatState.Heading):
+        elif (self.currFormatState == FormatState.Heading):
             self.changeFormatTo(FormatState.Action, True)
-        elif (self.prevFormatState == FormatState.Transition):
+        elif (self.currFormatState == FormatState.Transition):
             self.changeFormatTo(FormatState.Action, True)
         
     def formatAction(self, changeCursor):
@@ -556,8 +556,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
-        self.prevFormatState = FormatState.Action
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Action
+        self.setChecked(self.currFormatState)
         
     def formatCharacter(self, changeCursor):
         # Setup
@@ -576,8 +577,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
         
         # Track state
-        self.prevFormatState = FormatState.Character
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Character
+        self.setChecked(self.currFormatState)
        
     def formatParanthesis(self, changeCursor):
         # Setup
@@ -595,8 +597,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
-        self.prevFormatState = FormatState.Paranthesis
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Paranthesis
+        self.setChecked(self.currFormatState)
         
     def formatDialogue(self, changeCursor):
         # Setup
@@ -616,8 +619,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
-        self.prevFormatState = FormatState.Dialogue
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Dialogue
+        self.setChecked(self.currFormatState)
         
     def formatHeading(self, changeCursor):
         # Setup
@@ -635,8 +639,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
-        self.prevFormatState = FormatState.Heading
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Heading
+        self.setChecked(self.currFormatState)
         
     def formatTransition(self, changeCursor):
         # Setup
@@ -654,8 +659,9 @@ class Main(QMainWindow):
         self.scriptEdit.setTextCursor(changeCursor)
                 
         # Track state
-        self.prevFormatState = FormatState.Transition
-        self.setChecked(self.prevFormatState)
+        self.prevFormatState = self.currFormatState
+        self.currFormatState = FormatState.Transition
+        self.setChecked(self.currFormatState)
         
     # ----- FORMAT HELPERS -----
     def changeFormatTo(self, newFormatState, newLine = False):
@@ -710,10 +716,10 @@ class Main(QMainWindow):
         toSet.setPosition(self.cursorStartPosition)
         while (startingBlock <= endingBlock):
             # Parantheses check
-            if (self.prevFormatState == FormatState.Paranthesis and newFormatState != FormatState.Paranthesis):
+            if (self.currFormatState == FormatState.Paranthesis and newFormatState != FormatState.Paranthesis):
                 self.changeParenthesis(toSet, False)
             # Colon check           
-            if (self.prevFormatState == FormatState.Transition and newFormatState != FormatState.Transition):
+            if (self.currFormatState == FormatState.Transition and newFormatState != FormatState.Transition):
                 self.changeColon(toSet, False)
                 
             # Empty Line check
@@ -886,12 +892,12 @@ class Main(QMainWindow):
                 detectedType = 7
                 # if no format is detected, force previous format
                 if (self.autoFormatOnLineChange):
-                    self.changeFormatTo(self.prevFormatState)
+                    self.changeFormatTo(self.currFormatState)
                 ## if (toDetect.position() == 0):
                 ##    print(toDetect.position())
             
             if (detectedType != 7):
-                self.prevFormatState = detectedType
+                self.currFormatState = detectedType
             
         return detectedType
         
@@ -968,8 +974,16 @@ class CompletionTextEdit(QTextEdit):
         if self.completer:
             self.completer.setWidget(self);
         QTextEdit.focusInEvent(self, event)
+       
+    def keyReleaseEvent(self, event):
+        print(str(self.parent().parent().prevFormatState) + " : " + str(self.parent().parent().currFormatState))
+        if ((event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Return)) and 
+        ((self.parent().parent().prevFormatState == FormatState.Character) or 
+        (self.parent().parent().currFormatState == FormatState.Character))):
+            print("STORE CHARACTER")
+        
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):    
         if self.completer and self.completer.popup().isVisible():
             if event.key() in (
             QtCore.Qt.Key_Enter,
@@ -981,7 +995,6 @@ class CompletionTextEdit(QTextEdit):
                 return
         
         ## only show suggestions for characters
-        print(self.parent().parent().characterFormatAction.isChecked())
         if not self.parent().parent().characterFormatAction.isChecked():
             QTextEdit.keyPressEvent(self, event)
             return
