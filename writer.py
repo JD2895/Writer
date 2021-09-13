@@ -44,7 +44,12 @@ class Main(QMainWindow):
         completer = QCompleter(self.characterList, None)
         self.scriptEdit.setCompleter(completer)
         
-        # script edit space formatting
+        # scriptEdit formatting
+        self.scriptEdit.setStyleSheet("""
+            QTextEdit {
+                font: 12pt "Courier";
+            }
+        """)
         self.scriptEdit.setMaximumWidth(660)
         self.detectionEnabled = True
         self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)
@@ -217,7 +222,7 @@ class Main(QMainWindow):
         seq = QKeySequence(Qt.ALT+Qt.Key_Return)
         self.customNewLineStyleAction.setShortcut(seq)
         # Auto format toggle
-        self.autoFormatOnLineChange = True
+        self.autoFormatOnLineChange = False
         self.autoFormatAction = QAction("Auto-Format",self)
         self.autoFormatAction.setCheckable(True)
         self.autoFormatAction.setChecked(self.autoFormatOnLineChange)
@@ -897,9 +902,9 @@ class Main(QMainWindow):
                 detectedType = FormatState.Transition
             else:
                 detectedType = 7
-                # if no format is detected, force previous format
-                if (self.autoFormatOnLineChange):
-                    self.changeFormatTo(self.currFormatState)
+                ## if no format is detected, force previous format
+                ##if (self.autoFormatOnLineChange):
+                self.changeFormatTo(self.currFormatState)
                 ## if (toDetect.position() == 0):
                 ##    print(toDetect.position())
             
