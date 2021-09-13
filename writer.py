@@ -7,12 +7,14 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
                              QColorDialog, QGridLayout,
                              QHBoxLayout, QLabel, QWidget,  # Layout
                              QUndoStack, QUndoCommand,     # Undo
-                             QCompleter)
+                             QCompleter,    # auto complete
+                             QListWidget
+                             )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
-                         QKeySequence,  # Shortcuts
-                        )  
+                         QKeySequence  # Shortcuts
+                         )  
 
 class Main(QMainWindow):
     def __init__(self, parent = None):
@@ -20,7 +22,7 @@ class Main(QMainWindow):
         
         self.undoStack = QUndoStack()
         
-        self.setMinimumWidth(800)
+        self.setMinimumWidth(1000)
         self.filename = ""
         self.prevFormatState = FormatState.Action
         self.currFormatState = FormatState.Action
@@ -33,16 +35,20 @@ class Main(QMainWindow):
         self.setStartingFormat()
  
     def initUI(self):
-        # Initialising script editor widget
-        
+        # Initialising main widgets
         self.scriptEdit = CompletionTextEdit()
+        self.characterListWidget = QListWidget()
+        
+        # Adding autocompleter
         self.characterList = ["ALEX", "BLAKE", "CHARLIE", "FRANKIE", "JESSIE", "RILEY"]
         completer = QCompleter(self.characterList, None)
         self.scriptEdit.setCompleter(completer)
         
+        # script edit space formatting
         self.scriptEdit.setMaximumWidth(660)
         self.detectionEnabled = True
         self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)
+        self.characterListWidget.setMaximumWidth(65)
          
         # Setting/Adding toolbars
         self.initToolbar()
@@ -55,12 +61,13 @@ class Main(QMainWindow):
         mainLayout = QHBoxLayout()
         mainLayout.addWidget(QLabel(' '))
         mainLayout.addWidget(self.scriptEdit)
-        mainLayout.addWidget(QLabel(' '))
+        #mainLayout.addWidget(self.characterListWidget) # TODO: Add list here?
+        mainLayout.addWidget(QLabel(' ')) # TODO: Add list here?
         layoutWidget.setLayout(mainLayout)
         self.setCentralWidget(layoutWidget)
                 
         # x and y coordinates on the screen, width, height
-        self.setGeometry(100,100,1030,800) 
+        self.setGeometry(100,100,1000,800) 
         self.setWindowTitle("Writer")
 
     def initToolbar(self):
@@ -932,7 +939,8 @@ class Main(QMainWindow):
         if (startingType == FormatState.NoState):
             self.formatAction(toStart)
             self.setChecked(FormatState.Action)
-        
+
+# Ease of tracking/comparing states
 class FormatState(Enum):
     Action = 0
     Character = 1
@@ -941,7 +949,8 @@ class FormatState(Enum):
     Heading = 4
     Transition = 5
     NoState = 6
-    
+   
+# Modifying the QTextEdit implementation in order to allow autocompletion
 class CompletionTextEdit(QTextEdit):
     def __init__(self, parent=None):
         super(CompletionTextEdit, self).__init__(parent)
