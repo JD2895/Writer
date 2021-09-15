@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
                              QColorDialog, QGridLayout,
                              QHBoxLayout, QLabel, QWidget,  # Layout
                              QUndoStack, QUndoCommand,     # Undo
-                             QCompleter,    # auto complete
-                             QListWidget
+                             QCompleter, QLineEdit, QPushButton,     # character menu
+                             QCheckBox  # header menu
                              )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
@@ -37,12 +37,10 @@ class Main(QMainWindow):
     def initUI(self):
         # Initialising main widgets
         self.scriptEdit = CompletionTextEdit()
-        self.characterListWidget = QListWidget()
-        
-        # Adding autocompleter
-        self.characterList = ["ALEX", "BLAKE", "CHARLIE", "FRANKIE", "JESSIE", "RILEY"]
-        completer = QCompleter(self.characterList, None)
-        self.scriptEdit.setCompleter(completer)
+        # Initialise character menu
+        self.initCharMenu()
+        # Initialise header menu
+        self.initHeaderMenu()
         
         # scriptEdit formatting
         self.scriptEdit.setStyleSheet("""
@@ -52,9 +50,7 @@ class Main(QMainWindow):
         """)
         self.scriptEdit.setMaximumWidth(660)
         self.detectionEnabled = True
-        self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)
-        self.characterListWidget.setMaximumWidth(65)
-         
+        self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)         
         # Setting/Adding toolbars
         self.initToolbar()
         self.initFormatbar()
@@ -66,8 +62,7 @@ class Main(QMainWindow):
         mainLayout = QHBoxLayout()
         mainLayout.addWidget(QLabel(' '))
         mainLayout.addWidget(self.scriptEdit)
-        #mainLayout.addWidget(self.characterListWidget) # TODO: Add list here?
-        mainLayout.addWidget(QLabel(' ')) # TODO: Add list here?
+        mainLayout.addLayout(self.charMenuGrid)
         layoutWidget.setLayout(mainLayout)
         self.setCentralWidget(layoutWidget)
                 
@@ -307,7 +302,155 @@ class Main(QMainWindow):
         edit.addAction(self.cutAction)
         edit.addAction(self.copyAction)
         edit.addAction(self.pasteAction)
+       
+    ### CHARACATER MENU SECTION START ###
+    ### - includes autocompletion code 
+       
+    def initCharMenu(self):
+        # Default characterlist
+        self.characterList = ["ALEX", "CHARLIE", "FRANKIE", "JESSIE"]
         
+        # Adding autocompleter
+        completer = QCompleter(self.characterList, None)
+        self.scriptEdit.setCompleter(completer)
+        
+        # Header
+        self.charListTitle = QLabel('Characters')
+        self.charListButtonTitle = QLabel('+/-')
+        self.newCharacterEdit = QLineEdit()
+        
+        # Add characters button
+        self.addCharacterButton = QPushButton('+', self)
+        self.addCharacterButton.clicked.connect(self.addCharacter)
+        
+        # Character list container
+        self.characterListContainer = QGridLayout()
+        self.characterListContainer.setSpacing(2)
+        
+        # Sizing
+        self.charListTitle.setMaximumHeight(25)
+        self.charListButtonTitle.setMaximumWidth(25)
+        self.charListButtonTitle.setMaximumHeight(25)
+        self.addCharacterButton.setMaximumWidth(25)
+        self.addCharacterButton.setMaximumHeight(25)
+        self.charMenuGrid = QGridLayout()
+        self.charMenuGrid.setSpacing(2)
+        
+        # Build main charMenuGrid
+        self.charMenuGrid.addWidget(self.charListTitle, 0, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.charListButtonTitle, 0, 4)
+        self.charMenuGrid.addWidget(self.newCharacterEdit, 1, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.addCharacterButton, 1, 4)
+        self.charMenuGrid.addLayout(self.characterListContainer, 2, 0, 1, 5)
+        
+        # Populate charactert 
+        self.setCharacterList() 
+        
+    def setCharacterList(self):
+        # Remove old charMenuGrid
+        rowCount = self.characterListContainer.rowCount()
+        colCount = self.characterListContainer.columnCount()
+        
+        for i in range(rowCount):
+            for j in range(colCount):
+                if self.characterListContainer.itemAtPosition(i, j) is not None:
+                    self.characterListContainer.itemAtPosition(i, j).widget().setParent(None)
+        
+        counter = 0
+        if (len(self.characterList) == 0):
+            noTitle = QLabel('None')
+            noTitle.setMaximumHeight(25)
+            self.characterListContainer.addWidget(noTitle, counter, 0, 1, 4)
+            counter = counter + 1
+        else:
+            for character in self.characterList:
+                charTitle = QLabel(character)
+                charTitle.setMaximumHeight(25)
+                
+                remButton = QPushButton('-', self)
+                remButton.clicked.connect(lambda ignore, a=character : self.removeCharacter(a))
+                remButton.setMaximumWidth(25)
+                remButton.setMaximumHeight(25)
+                
+                self.characterListContainer.addWidget(charTitle, counter, 0, 1, 4)
+                self.characterListContainer.addWidget(remButton, counter, 4)
+                counter = counter + 1
+        
+        bottomSpace = QLabel(' ')
+        self.characterListContainer.addWidget(bottomSpace, counter, 0, 1, 5, Qt.AlignBottom)
+        
+    def addCharacter(self):
+        self.characterList.append(self.newCharacterEdit.text().upper())
+        
+        # Update autocompleter
+        completer = QCompleter(self.characterList, None)
+        self.scriptEdit.setCompleter(completer)
+        
+        # Update displayed list
+        self.setCharacterList()
+        
+    def removeCharacter(self, charName):
+        self.characterList.remove(charName)
+        
+        # Update autocompleter
+        completer = QCompleter(self.characterList, None)
+        self.scriptEdit.setCompleter(completer)
+        
+        # Update displayed list
+        self.setCharacterList()
+        
+    ### CHARACATER MENU SECTION END ###
+    
+    ### HEADER MENU SECTION START ###
+        
+    def initHeaderMenu(self):
+        # Script Title
+        self.scriptTitle = QLabel('Title')
+        self.scriptTitleEdit = QLineEdit()
+        self.scriptTitleCheck = QCheckBox()
+    
+        # Author
+        self.authorTitle = QLabel('Author')
+        self.authorTitleEdit = QLineEdit()
+        self.authorTitleCheck = QCheckBox()
+        
+        # Author
+        self.characterListTitle = QLabel('Author')
+        self.characterListTitleCheck = QCheckBox()
+        
+        self.generateHeaderButton = QPushButton("Generate")
+        
+        # Sizing
+        self.scriptTitle.setMaximumHeight(25)
+        self.scriptTitleEdit.setMaximumHeight(25)
+        self.scriptTitleCheck.setMaximumHeight(25)
+        self.scriptTitleCheck.setMaximumWidth(25)
+        self.authorTitle.setMaximumHeight(25)
+        self.authorTitleEdit.setMaximumHeight(25)
+        self.authorTitleCheck.setMaximumHeight(25)
+        self.authorTitleCheck.setMaximumWidth(25)
+        self.characterListTitle.setMaximumHeight(25)
+        self.characterListTitleCheck.setMaximumHeight(25)
+        self.characterListTitleCheck.setMaximumWidth(25)
+        
+        self.headerMenuGrid = QGridLayout()
+        self.headerMenuGrid.setSpacing(2)
+        
+        # Build main headerMenuGrid
+        self.headerMenuGrid.addWidget(self.scriptTitle, 0, 0, 1, 4)
+        self.headerMenuGrid.addWidget(self.scriptTitleCheck, 0, 5)
+        self.headerMenuGrid.addWidget(self.scriptTitleEdit, 1, 0, 1, 5)
+        self.headerMenuGrid.addWidget(self.authorTitle, 2, 0, 1, 4)
+        self.headerMenuGrid.addWidget(self.authorTitleCheck, 2, 5)
+        self.headerMenuGrid.addWidget(self.authorTitleEdit, 3, 0, 1, 5)
+        self.headerMenuGrid.addWidget(self.characterListTitle, 4, 0, 1, 4)
+        self.headerMenuGrid.addWidget(self.characterListTitleCheck, 4, 5)
+        self.headerMenuGrid.addWidget(self.generateHeaderButton, 5, 0, 1, 5)
+        
+    ### HEADER MENU SECTION END ###
+    
+    ### MENUBAR FUNCTIONS START ###
+    
     def new(self):
         spawn = Main(self)
         spawn.show()
@@ -334,23 +477,16 @@ class Main(QMainWindow):
         with open(self.filename,"wt") as file:
             file.write(self.scriptEdit.toHtml())
         
-    # ----- BREAK ----- 1
-    
     def preview(self):
-        # Open preview dialog
         preview = QPrintPreviewDialog()
-        # If a print is requested, open print dialog
         preview.paintRequested.connect(lambda p: self.scriptEdit.print_(p))
         preview.exec_()
      
     def print(self):
-        # Open printing dialog
         dialog = QPrintDialog()
         if dialog.exec_() == QDialog.Accepted:
             self.scriptEdit.document().print_(dialog.printer())
-            
-    # ----- BREAK ----- 2
-            
+                   
     def bulletList(self):
         cursor = self.scriptEdit.textCursor()
         # Insert bulleted list
@@ -358,30 +494,15 @@ class Main(QMainWindow):
         
     def numberList(self):
         cursor = self.scriptEdit.textCursor()
-        # Insert list with numbers
         cursor.insertList(QTextListFormat.ListDecimal)
-        
-    # ----- BREAK ----- 3
-        
-    ## def fontFamily(self,font):
-        ## self.scriptEdit.setCurrentFont(font)
-     
-    ## def fontSize(self, fontsize):
-        ## self.scriptEdit.setFontPointSize(int(fontsize))
-        
-    # ----- BREAK ----- 4
-        
+          
     def fontColor(self):
-        # Get a color from the text dialog
         color = QColorDialog.getColor()
-        # Set it as the new text color
         self.scriptEdit.setTextColor(color)
      
     def highlight(self):
         color = QColorDialog.getColor()
         self.scriptEdit.setTextBackgroundColor(color)
-
-    # ----- BREAK ----- 5
 
     def bold(self):
         if self.scriptEdit.fontWeight() == QtGui.QFont.Bold:
@@ -398,41 +519,28 @@ class Main(QMainWindow):
         self.scriptEdit.setFontUnderline(not state)
      
     def strike(self):
-        # Grab the text's format
         fmt = self.scriptEdit.currentCharFormat()
-        # Set the fontStrikeOut property to its opposite
         fmt.setFontStrikeOut(not fmt.fontStrikeOut())
-        # And set the next char format
         self.scriptEdit.setCurrentCharFormat(fmt)
      
     def superScript(self):
-        # Grab the current format
         fmt = self.scriptEdit.currentCharFormat()
-        # And get the vertical alignment property
         align = fmt.verticalAlignment()
-        # Toggle the state
         if align == QtGui.QTextCharFormat.AlignNormal:
             fmt.setVerticalAlignment(QtGui.QTextCharFormat.AlignSuperScript)
         else:
             fmt.setVerticalAlignment(QtGui.QTextCharFormat.AlignNormal)
-        # Set the new format
         self.scriptEdit.setCurrentCharFormat(fmt)
      
     def subScript(self):
-        # Grab the current format
         fmt = self.scriptEdit.currentCharFormat()
-        # And get the vertical alignment property
         align = fmt.verticalAlignment()
-        # Toggle the state
         if align == QtGui.QTextCharFormat.AlignNormal:
             fmt.setVerticalAlignment(QtGui.QTextCharFormat.AlignSubScript)
         else:
             fmt.setVerticalAlignment(QtGui.QTextCharFormat.AlignNormal)
-        # Set the new format
         self.scriptEdit.setCurrentCharFormat(fmt)
-        
-    # ----- BREAK ----- 6
-    
+       
     def alignLeft(self):
         self.scriptEdit.setAlignment(Qt.AlignLeft)
      
@@ -440,8 +548,9 @@ class Main(QMainWindow):
         self.scriptEdit.setAlignment(Qt.AlignRight)
      
     def alignCenter(self):
-        self.scriptEdit.setAlignment(Qt.AlignCenter)        
-    # ----- BREAK ----- Final
+        self.scriptEdit.setAlignment(Qt.AlignCenter)    
+        
+    ### MENUBAR FUNCTIONS END ###
     
     def setFontFormats(self):
         self.actionFormat = QTextCharFormat();
@@ -846,10 +955,8 @@ class Main(QMainWindow):
         # CAUTION! Apart from capitalizing the first letter, 
         # this function appears to remove all other formatting
         toCap.select(QTextCursor.BlockUnderCursor)
-        #print(toCap.selectedText())#
         selectedText = toCap.selectedText().strip()
         sentences = selectedText.split(".")
-        #print(selectedText)
         capitalizedBlock = ""
         
         if (sentences):#and len(sentences[0]) >= 1):  # Check if the list is empty
@@ -963,7 +1070,7 @@ class CompletionTextEdit(QTextEdit):
 
     def setCompleter(self, completer):
         if self.completer is not None:
-            self._completer.activated.disconnect()
+            self.completer.activated.disconnect()
             
         completer.setWidget(self)
         completer.setCompletionMode(QCompleter.PopupCompletion)

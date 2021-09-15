@@ -15,45 +15,45 @@ class Example(QWidget):
         self.characterList = ["FRED", "ARTIE"]
         
         # Header
-        self.title = QLabel('Characters')
-        self.mod = QLabel('+/-')
+        self.charListTitle = QLabel('Characters')
+        self.charListButtonTitle = QLabel('+/-')
         self.newCharacterEdit = QLineEdit()
         
         # Adding characters
         self.addCharacterButton = QPushButton('+', self)
         self.addCharacterButton.clicked.connect(self.addCharacter)
+        
         # Character list container
         self.characterListContainer = QGridLayout()
         self.characterListContainer.setSpacing(2)
         
         # Sizing
-        self.title.setMaximumHeight(25)
-        self.mod.setMaximumWidth(25)
-        self.mod.setMaximumHeight(25)
+        self.charListTitle.setMaximumHeight(25)
+        self.charListButtonTitle.setMaximumWidth(25)
+        self.charListButtonTitle.setMaximumHeight(25)
         self.addCharacterButton.setMaximumWidth(25)
         self.addCharacterButton.setMaximumHeight(25)
-        self.grid = QGridLayout()
-        self.grid.setSpacing(2)
+        self.charMenuGrid = QGridLayout()
+        self.charMenuGrid.setSpacing(2)
 
-        # Build main grid
-        self.grid.addWidget(self.title, 0, 0, 1, 4)
-        self.grid.addWidget(self.mod, 0, 4)
-        self.grid.addWidget(self.newCharacterEdit, 1, 0, 1, 4)
-        self.grid.addWidget(self.addCharacterButton, 1, 4)
-        self.grid.addLayout(self.characterListContainer, 2, 0, 1, 5)
+        # Build main charMenuGrid
+        self.charMenuGrid.addWidget(self.charListTitle, 0, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.charListButtonTitle, 0, 4)
+        self.charMenuGrid.addWidget(self.newCharacterEdit, 1, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.addCharacterButton, 1, 4)
+        self.charMenuGrid.addLayout(self.characterListContainer, 2, 0, 1, 5)
         
         # Populate charactert 
-        self.setGridList()
-        
+        self.setCharacterList()
 
-        self.setLayout(self.grid)
+        self.setLayout(self.charMenuGrid)
 
         self.setGeometry(300, 300, 350, 300)
         self.setWindowTitle('Review')
         self.show()
         
-    def setGridList(self):
-        # Remove old grid
+    def setCharacterList(self):
+        # Remove old charMenuGrid
         rowCount = self.characterListContainer.rowCount()
         colCount = self.characterListContainer.columnCount()
         
@@ -91,12 +91,12 @@ class Example(QWidget):
             
     def addCharacter(self):
         self.characterList.append(self.newCharacterEdit.text().upper())
-        self.setGridList()
+        self.setCharacterList()
         
     def removeCharacter(self, charName):
         print(charName)
         self.characterList.remove(charName)
-        self.setGridList()
+        self.setCharacterList()
      
 def main():
     app = QApplication(sys.argv)
