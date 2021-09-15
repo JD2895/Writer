@@ -60,7 +60,7 @@ class Main(QMainWindow):
         # Layout
         layoutWidget = QWidget()        
         mainLayout = QHBoxLayout()
-        mainLayout.addWidget(QLabel(' '))
+        mainLayout.addLayout(self.headerMenuGrid)
         mainLayout.addWidget(self.scriptEdit)
         mainLayout.addLayout(self.charMenuGrid)
         layoutWidget.setLayout(mainLayout)
@@ -337,11 +337,11 @@ class Main(QMainWindow):
         self.charMenuGrid.setSpacing(2)
         
         # Build main charMenuGrid
-        self.charMenuGrid.addWidget(self.charListTitle, 0, 0, 1, 4)
-        self.charMenuGrid.addWidget(self.charListButtonTitle, 0, 4)
-        self.charMenuGrid.addWidget(self.newCharacterEdit, 1, 0, 1, 4)
-        self.charMenuGrid.addWidget(self.addCharacterButton, 1, 4)
-        self.charMenuGrid.addLayout(self.characterListContainer, 2, 0, 1, 5)
+        self.charMenuGrid.addWidget(self.charListTitle,             0, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.charListButtonTitle,       0, 4)
+        self.charMenuGrid.addWidget(self.newCharacterEdit,          1, 0, 1, 4)
+        self.charMenuGrid.addWidget(self.addCharacterButton,        1, 4)
+        self.charMenuGrid.addLayout(self.characterListContainer,    2, 0, 1, 5)
         
         # Populate charactert 
         self.setCharacterList() 
@@ -408,44 +408,96 @@ class Main(QMainWindow):
         self.scriptTitle = QLabel('Title')
         self.scriptTitleEdit = QLineEdit()
         self.scriptTitleCheck = QCheckBox()
+        self.scriptTitleCheck.setCheckState(Qt.Checked)
     
         # Author
         self.authorTitle = QLabel('Author')
         self.authorTitleEdit = QLineEdit()
         self.authorTitleCheck = QCheckBox()
+        self.authorTitleCheck.setCheckState(Qt.Checked)
         
         # Author
-        self.characterListTitle = QLabel('Author')
+        self.characterListTitle = QLabel('Character List')
         self.characterListTitleCheck = QCheckBox()
+        self.characterListTitleCheck.setCheckState(Qt.Checked)
         
         self.generateHeaderButton = QPushButton("Generate")
+        self.generateHeaderButton.clicked.connect(self.insertHeader)
         
         # Sizing
         self.scriptTitle.setMaximumHeight(25)
-        self.scriptTitleEdit.setMaximumHeight(25)
         self.scriptTitleCheck.setMaximumHeight(25)
-        self.scriptTitleCheck.setMaximumWidth(25)
+        self.scriptTitleEdit.setMaximumHeight(25)
+        
         self.authorTitle.setMaximumHeight(25)
-        self.authorTitleEdit.setMaximumHeight(25)
         self.authorTitleCheck.setMaximumHeight(25)
-        self.authorTitleCheck.setMaximumWidth(25)
+        self.authorTitleEdit.setMaximumHeight(25)
+        
         self.characterListTitle.setMaximumHeight(25)
         self.characterListTitleCheck.setMaximumHeight(25)
-        self.characterListTitleCheck.setMaximumWidth(25)
+        
+        midSpace = QLabel(' ')
+        midSpace.setMaximumHeight(7)
+        bottomSpace = QLabel(' ')
         
         self.headerMenuGrid = QGridLayout()
-        self.headerMenuGrid.setSpacing(2)
+        self.headerMenuGrid.setSpacing(1)
+        
+        checkboxAlignment = Qt.AlignRight | Qt.AlignBottom
         
         # Build main headerMenuGrid
-        self.headerMenuGrid.addWidget(self.scriptTitle, 0, 0, 1, 4)
-        self.headerMenuGrid.addWidget(self.scriptTitleCheck, 0, 5)
-        self.headerMenuGrid.addWidget(self.scriptTitleEdit, 1, 0, 1, 5)
-        self.headerMenuGrid.addWidget(self.authorTitle, 2, 0, 1, 4)
-        self.headerMenuGrid.addWidget(self.authorTitleCheck, 2, 5)
-        self.headerMenuGrid.addWidget(self.authorTitleEdit, 3, 0, 1, 5)
-        self.headerMenuGrid.addWidget(self.characterListTitle, 4, 0, 1, 4)
-        self.headerMenuGrid.addWidget(self.characterListTitleCheck, 4, 5)
-        self.headerMenuGrid.addWidget(self.generateHeaderButton, 5, 0, 1, 5)
+        self.headerMenuGrid.addWidget(self.scriptTitle,             0, 0)#, Qt.AlignBottom)
+        self.headerMenuGrid.addWidget(self.scriptTitleCheck,        0, 1, Qt.AlignRight)#, checkboxAlignment)
+        self.headerMenuGrid.addWidget(self.scriptTitleEdit,         1, 0, 1, 2)
+        self.headerMenuGrid.addWidget(midSpace,                     2, 0, 1, 2)
+        
+        self.headerMenuGrid.addWidget(self.authorTitle,             3, 0)#, Qt.AlignBottom)
+        self.headerMenuGrid.addWidget(self.authorTitleCheck,        3, 1, Qt.AlignRight)#, checkboxAlignment)
+        self.headerMenuGrid.addWidget(self.authorTitleEdit,         4, 0, 1, 2)
+        self.headerMenuGrid.addWidget(midSpace,                     5, 0, 1, 2)
+        
+        self.headerMenuGrid.addWidget(self.characterListTitle,      6, 0)
+        self.headerMenuGrid.addWidget(self.characterListTitleCheck, 6, 1, Qt.AlignRight)
+        self.headerMenuGrid.addWidget(midSpace,                     7, 0, 1, 2)
+        
+        self.headerMenuGrid.addWidget(self.generateHeaderButton,    8, 0, 1, 2)
+        self.headerMenuGrid.addWidget(bottomSpace,                  9, 0, 1, 2, Qt.AlignBottom)
+        
+    def insertHeader(self):
+        # Get cursor
+        cursor = self.scriptEdit.textCursor()
+        
+        # Make one block space
+        cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
+        cursor.insertBlock()
+        cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
+        #self.scriptEdit.setTextCursor(cursor)
+        # cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
+        # cursor = self.scriptEdit.textCursor()
+        
+        cursor.insertText(self.scriptTitleEdit.text())
+        cursor.insertBlock()
+        cursor.insertText(self.authorTitleEdit.text())
+        self.scriptEdit.setTextCursor(cursor)
+        cursor.insertBlock()
+                
+        # cursor.insertBlock()
+        # self.scriptEdit.setTextCursor(cursor)
+        # cursor = self.scriptEdit.textCursor()
+        
+        # self.changeFormatTo(FormatState.Dialogue)
+        # #self.formatDialogue(cursor)
+        # cursor.insertText(self.authorTitleEdit.text())
+        # self.scriptEdit.setTextCursor(cursor)
+        # cursor = self.scriptEdit.textCursor()
+        
+        # cursor.insertBlock()
+        self.scriptEdit.setTextCursor(cursor)
+        # cursor = self.scriptEdit.textCursor()
+        
+        # self.scriptEdit.setTextCursor(cursor)
+        
+        
         
     ### HEADER MENU SECTION END ###
     
