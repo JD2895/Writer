@@ -1,4 +1,15 @@
 import sys
+import subprocess
+import pkg_resources
+
+required = {'pyqt5'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+if missing:
+    python = sys.executable
+    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+
 from enum import Enum
 from PyQt5 import (QtGui, QtCore)
 from PyQt5.QtCore import (Qt)
@@ -1227,7 +1238,7 @@ class CompletionTextEdit(QTextEdit):
         cr = self.cursorRect()
         cr.setWidth(self.completer.popup().sizeHintForColumn(0)
             + self.completer.popup().verticalScrollBar().sizeHint().width())
-        self.completer.complete(cr) ## popup it up!
+        self.completer.complete(cr) ## pop it up!
         
 def main():
     app = QApplication(sys.argv)
