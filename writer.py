@@ -1246,6 +1246,10 @@ if __name__ == "__main__":
 # [X] (Paranthetical) (centered, in brackets, italics?)
 # [X] TRANSITION (right aligned, uppercase)
 # [X] Set page size
-# [ ] Make shortcuts customizable (external text editor)
-# [ ] Auto complete character names
+# [ ] Make shortcuts/presets customizable (external text file)
+# [ ] Make "enter" optionally capture character names
+# [ ] Fix capitalizeFirst
+# [ ] Dark mode? Check how it prints
+# [X] Auto complete character names
+# [X] Generate header options
 # [X] Shortcut to switch styles
