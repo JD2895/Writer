@@ -470,35 +470,40 @@ class Main(QMainWindow):
         # Make one block space
         cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
         cursor.insertBlock()
+        cursor.insertBlock()
         cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
-        #self.scriptEdit.setTextCursor(cursor)
-        # cursor.movePosition(QTextCursor.Start, QTextCursor.MoveAnchor)
-        # cursor = self.scriptEdit.textCursor()
         
-        cursor.insertText(self.scriptTitleEdit.text())
-        cursor.insertBlock()
-        cursor.insertText(self.authorTitleEdit.text())
+        # Title
+        if (self.scriptTitleCheck.checkState() == Qt.Checked):
+            self.scriptEdit.setTextCursor(cursor)
+            self.changeFormatTo(FormatState.Heading)
+            cursor.insertText(self.scriptTitleEdit.text())
+            cursor.insertBlock()
+        
+        # Author
+        if (self.authorTitleCheck.checkState() == Qt.Checked):
+            self.scriptEdit.setTextCursor(cursor)
+            self.changeFormatTo(FormatState.Paranthesis)
+            cursor.select(QTextCursor.LineUnderCursor)
+            cursor.removeSelectedText()
+            cursor.insertText("By " + self.authorTitleEdit.text())
+            cursor.insertBlock()
+        
+        # Character List
+        if (self.characterListTitleCheck.checkState() == Qt.Checked):
+            cursor.insertBlock()
+            self.scriptEdit.setTextCursor(cursor)
+            self.changeFormatTo(FormatState.Dialogue)
+            cursor.insertText("Character list:")
+            cursor.insertBlock()
+            self.scriptEdit.setTextCursor(cursor)
+            self.changeFormatTo(FormatState.Character)
+            for characterName in self.characterList:
+                cursor.insertText(characterName)
+                cursor.insertBlock()
+        
+        # Apply any remaining changes
         self.scriptEdit.setTextCursor(cursor)
-        cursor.insertBlock()
-                
-        # cursor.insertBlock()
-        # self.scriptEdit.setTextCursor(cursor)
-        # cursor = self.scriptEdit.textCursor()
-        
-        # self.changeFormatTo(FormatState.Dialogue)
-        # #self.formatDialogue(cursor)
-        # cursor.insertText(self.authorTitleEdit.text())
-        # self.scriptEdit.setTextCursor(cursor)
-        # cursor = self.scriptEdit.textCursor()
-        
-        # cursor.insertBlock()
-        self.scriptEdit.setTextCursor(cursor)
-        # cursor = self.scriptEdit.textCursor()
-        
-        # self.scriptEdit.setTextCursor(cursor)
-        
-        
-        
     ### HEADER MENU SECTION END ###
     
     ### MENUBAR FUNCTIONS START ###
@@ -632,7 +637,7 @@ class Main(QMainWindow):
         self.paranthesisFormat = QTextCharFormat();
         self.paranthesisFormat.setFontFamily("Courier")
         self.paranthesisFormat.setFontPointSize(12)
-        self.paranthesisFormat.setFontCapitalization(QFont.AllLowercase)
+        self.paranthesisFormat.setFontCapitalization(QFont.MixedCase)
         self.paranthesisFormat.setFontItalic(True)
         self.paranthesisFormat.setFontUnderline(False)
         self.paranthesisFormat.setFontLetterSpacing(100)
@@ -779,7 +784,7 @@ class Main(QMainWindow):
         toSetReturnPosition = changeCursor.position()
         
         # Line format
-        self.capitalizeFirst(changeCursor)
+        #self.capitalizeFirst(changeCursor) TODO: fix this??? eg. change "character list: " from heading to dialogue
         changeCursor.select(QTextCursor.BlockUnderCursor)
         changeCursor.setCharFormat(self.dialogueFormat)
         
@@ -1155,7 +1160,6 @@ class CompletionTextEdit(QTextEdit):
         (self.parent().parent().currFormatState == FormatState.Character))):
             print("STORE CHARACTER")
         
-
     def keyPressEvent(self, event):    
         if self.completer and self.completer.popup().isVisible():
             if event.key() in (
@@ -1166,6 +1170,11 @@ class CompletionTextEdit(QTextEdit):
             QtCore.Qt.Key_Backtab):
                 event.ignore()
                 return
+                
+        # the prefered shortcut
+        if (event.key() == (QtCore.Qt.Key_Tab)):
+            self.parent().parent().changeStyle()
+            return
         
         ## only show suggestions for characters
         if not self.parent().parent().characterFormatAction.isChecked():
