@@ -889,6 +889,13 @@ class Main(QMainWindow):
             toSet.setPosition(self.cursorStartPosition)
             startingBlock = toSet.blockNumber()
             endingBlock = startingBlock
+        
+        # Check if we're changing on an empty line
+        noSelectedText = False
+        if (self.cursorStartPosition == self.cursorEndPosition):
+            toSet.select(QTextCursor.LineUnderCursor)
+            if (toSet.selectedText() == ""):
+                noSelectedText = True
                     
         # Go through all selected blocks
         toSet.setPosition(self.cursorStartPosition)
@@ -938,6 +945,8 @@ class Main(QMainWindow):
         # Set cursor positions
         if (self.cursorStartPosition == self.cursorEndPosition):
             self.cursorStartPosition += self.newCharactersBehindStart
+            if (noSelectedText and newFormatState == FormatState.Paranthesis):
+                self.cursorStartPosition += 1
             toSet.setPosition(self.cursorStartPosition)
         else:
             self.cursorStartPosition += self.newCharactersBehindStart
@@ -1171,11 +1180,18 @@ class CompletionTextEdit(QTextEdit):
                 event.ignore()
                 return
                 
-        # the prefered shortcut
+        # the prefered format switching shortcut
         if (event.key() == (QtCore.Qt.Key_Tab)):
             self.parent().parent().changeStyle()
             return
         
+        # shortcut for new line format
+        if (event.key() in (
+            QtCore.Qt.Key_Enter,
+            QtCore.Qt.Key_Return)):
+            self.parent().parent().customNewLineStyle()
+            return
+                    
         ## only show suggestions for characters
         if not self.parent().parent().characterFormatAction.isChecked():
             QTextEdit.keyPressEvent(self, event)
