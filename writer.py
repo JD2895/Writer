@@ -239,12 +239,12 @@ class Main(QMainWindow):
         self.customNewLineStyleAction.triggered.connect(self.customNewLineStyle)
         seq = QKeySequence(writterSettings.newLineFormat)
         self.customNewLineStyleAction.setShortcut(seq)
-        # Auto format toggle
-        self.autoFormatOnLineChange = False
-        self.autoFormatAction = QAction("Auto-Format",self)
-        self.autoFormatAction.setCheckable(True)
-        self.autoFormatAction.setChecked(self.autoFormatOnLineChange)
-        self.autoFormatAction.triggered.connect(self.setAutoFormat)
+        # # Auto format toggle
+        # self.autoFormatOnLineChange = False
+        # self.autoFormatAction = QAction("Auto-Format",self)
+        # self.autoFormatAction.setCheckable(True)
+        # self.autoFormatAction.setChecked(self.autoFormatOnLineChange)
+        # self.autoFormatAction.triggered.connect(self.setAutoFormat)
         
         # Bold
         boldAction = QAction(QtGui.QIcon("icons/bold.png"),"Bold",self)
@@ -292,8 +292,8 @@ class Main(QMainWindow):
         self.addAction(self.customNewLineStyleAction)       # added this way to keep it hidden
         self.formatbar.addSeparator()
         
-        self.formatbar.addAction(self.autoFormatAction)
-        self.formatbar.addSeparator()
+        # self.formatbar.addAction(self.autoFormatAction)
+        # self.formatbar.addSeparator()
         
         self.formatbar.addAction(boldAction)
         self.formatbar.addAction(italicAction)
