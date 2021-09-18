@@ -3,14 +3,10 @@ import subprocess
 import pkg_resources
 
 ## Dependency installation START
-required = {'pyqt5'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
+required = 'pyqt5'
 
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-## Dependency installation END
+# implement pip as a subprocess:
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', required])
 
 from enum import Enum
 from PyQt5 import (QtGui, QtCore)
