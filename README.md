@@ -6,7 +6,8 @@ A simple screenplay editor
 ### 1) Make sure you have Python installed 
 Download from https://www.python.org/downloads/
 
-### 2) Download the following from above
+### 2) Download the files above
+Of everything downloaded, you can delete everything except for:
 - writer.py
 - writerSettings.py
 - icons (the entire folder)
