@@ -9,7 +9,7 @@ enterFormat = True
 defaultAuthor = "Josh Davis"
 
 # Change whether scripts should start with default character suggestions
-startWithDefaultCharacters = True
+startWithDefaultCharacters = False
 # Change the default characters in your scripts
 defaultCharacters = ["ALEX", "CHARLIE", "FRANKIE", "JESSIE"]
 

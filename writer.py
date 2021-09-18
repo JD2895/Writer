@@ -84,6 +84,9 @@ class Main(QMainWindow):
         # x and y coordinates on the screen, width, height
         self.setGeometry(100,100,1000,800) 
         self.setWindowTitle("Writer")
+        
+        # focus on the text editor
+        self.scriptEdit.setFocus()
 
     def initToolbar(self):
         # New
@@ -103,6 +106,11 @@ class Main(QMainWindow):
         self.saveAction.setStatusTip("Save script")
         self.saveAction.setShortcut("Ctrl+S")
         self.saveAction.triggered.connect(self.save)
+        
+        # Save As
+        self.saveAsAction = QAction("Save As",self)
+        self.saveAsAction.setStatusTip("Save script as...")
+        self.saveAsAction.triggered.connect(self.saveAs)
         
         # Print
         self.printAction = QAction(QtGui.QIcon("icons/print.png"),"Print script",self)
@@ -317,6 +325,7 @@ class Main(QMainWindow):
         file.addAction(self.newAction)
         file.addAction(self.openAction)
         file.addAction(self.saveAction)
+        file.addAction(self.saveAsAction)
         file.addAction(self.printAction)
         file.addAction(self.previewAction)
         
@@ -331,7 +340,9 @@ class Main(QMainWindow):
        
     def initCharMenu(self):
         # Default characterlist
-        self.characterList = ["ALEX", "CHARLIE", "FRANKIE", "JESSIE"]
+        self.characterList = []
+        if (writterSettings.startWithDefaultCharacters):
+            self.characterList = self.characterList + writterSettings.defaultCharacters
         
         # Adding autocompleter
         completer = QCompleter(self.characterList, None)
@@ -558,7 +569,19 @@ class Main(QMainWindow):
         if not self.filename:
             self.filename = QFileDialog.getSaveFileName(self, 'Save File')[0]
 
-        print(self.filename)
+        # Append extension if not there yet
+        if not self.filename.endswith(".writer"):
+            self.filename += ".writer"
+
+        # We just store the contents of the text file along with the
+        # format in html, which Qt does in a very nice way for us
+        with open(self.filename,"wt") as file:
+            file.write(self.scriptEdit.toHtml())
+            
+    def saveAs(self):
+        # Only open dialog if there is no filename yet
+        self.filename = QFileDialog.getSaveFileName(self, 'Save File')[0]
+
         # Append extension if not there yet
         if not self.filename.endswith(".writer"):
             self.filename += ".writer"
@@ -1207,6 +1230,7 @@ class CompletionTextEdit(QTextEdit):
         ((self.parent().parent().prevFormatState == FormatState.Character) or 
         (self.parent().parent().currFormatState == FormatState.Character))):
             charCursor = self.textCursor()
+            cursorOgPosition = charCursor.position()
             charCursor.movePosition(QTextCursor.Up, QTextCursor.MoveAnchor)
             charCursor.select(QTextCursor.LineUnderCursor)
             detectedCharacter = charCursor.selectedText()
@@ -1214,6 +1238,9 @@ class CompletionTextEdit(QTextEdit):
             if (detectedCharacter != ""):
                 print(detectedCharacter)
                 self.parent().parent().addCharacterName(detectedCharacter)
+                
+            self.setFocus()
+            return
                   
     def keyPressEvent(self, event):    
         if self.completer and self.completer.popup().isVisible():
