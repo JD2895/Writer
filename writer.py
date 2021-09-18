@@ -536,16 +536,18 @@ class Main(QMainWindow):
         
         # Character List
         if (self.characterListTitleCheck.checkState() == Qt.Checked):
-            cursor.insertBlock()
-            self.scriptEdit.setTextCursor(cursor)
-            self.changeFormatTo(FormatState.Dialogue)
-            cursor.insertText("Character list:")
-            cursor.insertBlock()
-            self.scriptEdit.setTextCursor(cursor)
-            self.changeFormatTo(FormatState.Character)
-            for characterName in self.characterList:
-                cursor.insertText(characterName)
+            # Check if list is empty
+            if (len(self.characterList) > 0):
                 cursor.insertBlock()
+                self.scriptEdit.setTextCursor(cursor)
+                self.changeFormatTo(FormatState.Dialogue)
+                cursor.insertText("Character list:")
+                cursor.insertBlock()
+                self.scriptEdit.setTextCursor(cursor)
+                self.changeFormatTo(FormatState.Character)
+                for characterName in self.characterList:
+                    cursor.insertText(characterName)
+                    cursor.insertBlock()
         
         # Apply any remaining changes
         self.scriptEdit.setTextCursor(cursor)
@@ -1078,28 +1080,29 @@ class Main(QMainWindow):
         # CAUTION! Apart from capitalizing the first letter, 
         # this function appears to remove all other formatting
         toCap.select(QTextCursor.BlockUnderCursor)
-        selectedText = toCap.selectedText().strip()
+        # selectedText = toCap.selectedText().strip()
         
-        if (selectedText == ""):
-            return
+        # if (selectedText == ""):
+            # return
             
-        # Capitalize first character
-        newText = ""
-        newText = selectedText[0].upper() + selectedText[1:]
+        # # Capitalize first character
+        # newText = ""
+        # newText = selectedText[0].upper() + selectedText[1:]
         
-        # Check for other sentences
-        start = 0
-        endSentence = selectedText.find(".", start)
-        while (endSentence > 0):
-            if (endSentence + 3 > len(selectedText)):
-                break
+        # # Check for other sentences
+        # start = 0
+        # endSentence = selectedText.find(".", start)
+        # while (endSentence > 0):
+            # if (endSentence + 3 > len(selectedText)):
+                # break
                 
-            newText = newText[:endSentence+2] + newText[endSentence+2].upper() + newText[endSentence+3:]
+            # newText = newText[:endSentence+2] + newText[endSentence+2].upper() + newText[endSentence+3:]
                 
-            # look for the next sentence
-            endSentence = selectedText.find(".", endSentence + 1)
+            # # look for the next sentence
+            # endSentence = selectedText.find(".", endSentence + 1)
         
-        toCap.insertText(newText)
+        # toCap.insertText(newText)
+        # toCap.clearSelection()
             
     def detectFormat(self):
         # Get cursor
