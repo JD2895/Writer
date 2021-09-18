@@ -2,6 +2,7 @@
 A simple screenplay editor
 
 Install Instructions
+
 Make sure you have Python installed (https://www.python.org/downloads/)
 
 Download the following:
