@@ -3,11 +3,14 @@ A simple screenplay editor
 
 ## Install Instructions
 
-### 1) Make sure you have Python installed 
+### 1) Make sure you have Python installed
 Download from https://www.python.org/downloads/
+(Version 3.9.7 is currently supported)
 
-### 2) Download the files above
-Of everything downloaded, you can delete everything except for:
+### 2) Download the zip file of all of the above
+There should be a little green button above that has option of 'Download ZIP'
+
+Once downloaded, you only need to keep the following files:
 - writer.py
 - writerSettings.py
 - icons (the entire folder)
