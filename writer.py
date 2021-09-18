@@ -818,7 +818,7 @@ class Main(QMainWindow):
         toSetReturnPosition = changeCursor.position()
         
         # Line format
-        #self.capitalizeFirst(changeCursor) TODO: fix this??? eg. change "character list: " from heading to dialogue
+        self.capitalizeFirst(changeCursor) #TODO: fix this??? eg. change "character list: " from heading to dialogue
         changeCursor.select(QTextCursor.BlockUnderCursor)
         changeCursor.setCharFormat(self.dialogueFormat)
         
@@ -1056,22 +1056,27 @@ class Main(QMainWindow):
         # this function appears to remove all other formatting
         toCap.select(QTextCursor.BlockUnderCursor)
         selectedText = toCap.selectedText().strip()
-        sentences = selectedText.split(".")
-        capitalizedBlock = ""
         
-        if (sentences):#and len(sentences[0]) >= 1):  # Check if the list is empty
-            sentenceCount = 0
-            for sentence in sentences:
-                if (sentenceCount >= 1):
-                    capitalizedBlock += "."
-                capitalizedBlock += sentence.capitalize()
-                sentenceCount += 1
-                
-            if (toCap.blockNumber() > 0):       # Only add a newline if this block is after the first line
-                capitalizedBlock = "\n" + capitalizedBlock
+        if (selectedText == ""):
+            return
             
-            toCap.deleteChar()
-            toCap.insertText(capitalizedBlock)
+        # Capitalize first character
+        newText = ""
+        newText = selectedText[0].upper() + selectedText[1:]
+        
+        # Check for other sentences
+        start = 0
+        endSentence = selectedText.find(".", start)
+        while (endSentence > 0):
+            if (endSentence + 3 > len(selectedText)):
+                break
+                
+            newText = newText[:endSentence+2] + newText[endSentence+2].upper() + newText[endSentence+3:]
+                
+            # look for the next sentence
+            endSentence = selectedText.find(".", endSentence + 1)
+        
+        toCap.insertText(newText)
             
     def detectFormat(self):
         # Get cursor
@@ -1290,7 +1295,7 @@ if __name__ == "__main__":
 # [X] Set page size
 # [X] Make shortcuts/presets customizable (external text file)
 # [X] Make "enter" optionally capture character names
-# [ ] Fix capitalizeFirst
+# [X] Fix capitalizeFirst
 # [ ] Dark mode? Check how it prints
 # [X] Auto complete character names
 # [X] Generate header options
