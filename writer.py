@@ -2,6 +2,7 @@ import sys
 import subprocess
 import pkg_resources
 
+## Dependency installation START
 required = {'pyqt5'}
 installed = {pkg.key for pkg in pkg_resources.working_set}
 missing = required - installed
@@ -9,6 +10,7 @@ missing = required - installed
 if missing:
     python = sys.executable
     subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+## Dependency installation END
 
 from enum import Enum
 from PyQt5 import (QtGui, QtCore)
@@ -26,6 +28,8 @@ from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
                          QKeySequence  # Shortcuts
                          )  
+                         
+import writterSettings
 
 class Main(QMainWindow):
     def __init__(self, parent = None):
@@ -189,43 +193,51 @@ class Main(QMainWindow):
         # Action
         self.actionFormatAction = QAction("Action",self)
         self.actionFormatAction.setCheckable(True)
+        self.actionFormatAction.setChecked(True)    # Always starts checked
         self.actionFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Action))
-        self.actionFormatAction.setShortcut("Alt+1")
+        seq = QKeySequence(writterSettings.actionFormat)
+        self.actionFormatAction.setShortcut(seq)
         # Character
         self.characterFormatAction = QAction("Character",self)
         self.characterFormatAction.setCheckable(True)
         self.characterFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Character))
-        self.characterFormatAction.setShortcut("Alt+2")
+        seq = QKeySequence(writterSettings.characterFormat)
+        self.characterFormatAction.setShortcut(seq)
         # Dialogue
         self.dialogueFormatAction = QAction("Dialogue",self)
         self.dialogueFormatAction.setCheckable(True)
         self.dialogueFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Dialogue))
-        self.dialogueFormatAction.setShortcut("Alt+3")
+        seq = QKeySequence(writterSettings.dialogueFormat)
+        self.dialogueFormatAction.setShortcut(seq)
         # Paranthesis
         self.paranthesisFormatAction = QAction("Paranthesis",self)
         self.paranthesisFormatAction.setCheckable(True)
         self.paranthesisFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Paranthesis))
-        self.paranthesisFormatAction.setShortcut("Alt+4")
+        seq = QKeySequence(writterSettings.paranthesisFormat)
+        self.paranthesisFormatAction.setShortcut(seq)
         # Heading
         self.headingFormatAction = QAction("Heading",self)
         self.headingFormatAction.setCheckable(True)
         self.headingFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Heading))
-        self.headingFormatAction.setShortcut("Alt+5")
+        seq = QKeySequence(writterSettings.headingFormat)
+        self.headingFormatAction.setShortcut(seq)
         # Transition
         self.transitionFormatAction = QAction("Transition",self)
         self.transitionFormatAction.setCheckable(True)
         self.transitionFormatAction.triggered.connect(lambda: self.changeFormatTo(FormatState.Transition))
-        self.transitionFormatAction.setShortcut("Alt+6")
+        seq = QKeySequence(writterSettings.transitionFormat)
+        self.transitionFormatAction.setShortcut(seq)
         # Change Styles
         self.changeStyleAction = QAction("Change Style",self)
         self.changeStyleAction.setEnabled(True)
         self.changeStyleAction.triggered.connect(self.changeStyle)
-        self.changeStyleAction.setShortcut("Alt+`")
+        seq = QKeySequence(writterSettings.changeFormat)
+        self.changeStyleAction.setShortcut(seq)
         # Custom New Line Style Change Shortcut
         self.customNewLineStyleAction = QAction("New Line Style",self)
         self.customNewLineStyleAction.setEnabled(True)
         self.customNewLineStyleAction.triggered.connect(self.customNewLineStyle)
-        seq = QKeySequence(Qt.ALT+Qt.Key_Return)
+        seq = QKeySequence(writterSettings.newLineFormat)
         self.customNewLineStyleAction.setShortcut(seq)
         # Auto format toggle
         self.autoFormatOnLineChange = False
@@ -399,6 +411,17 @@ class Main(QMainWindow):
         
         # Update displayed list
         self.setCharacterList()
+         
+    def addCharacterName(self, characterName):
+        if (characterName.upper() not in self.characterList):
+            self.characterList.append(characterName.upper())
+            
+            # Update autocompleter
+            completer = QCompleter(self.characterList, None)
+            self.scriptEdit.setCompleter(completer)
+            
+            # Update displayed list
+            self.setCharacterList()
         
     def removeCharacter(self, charName):
         self.characterList.remove(charName)
@@ -423,7 +446,7 @@ class Main(QMainWindow):
     
         # Author
         self.authorTitle = QLabel('Author')
-        self.authorTitleEdit = QLineEdit()
+        self.authorTitleEdit = QLineEdit(writterSettings.defaultAuthor)
         self.authorTitleCheck = QCheckBox()
         self.authorTitleCheck.setCheckState(Qt.Checked)
         
@@ -1088,7 +1111,7 @@ class Main(QMainWindow):
                 detectedType = 7
                 ## if no format is detected, force previous format
                 ##if (self.autoFormatOnLineChange):
-                self.changeFormatTo(self.currFormatState)
+                ##self.changeFormatTo(self.currFormatState)
                 ## if (toDetect.position() == 0):
                 ##    print(toDetect.position())
             
@@ -1174,12 +1197,19 @@ class CompletionTextEdit(QTextEdit):
         QTextEdit.focusInEvent(self, event)
        
     def keyReleaseEvent(self, event):
-        print(str(self.parent().parent().prevFormatState) + " : " + str(self.parent().parent().currFormatState))
+        ##print(str(self.parent().parent().prevFormatState) + " : " + str(self.parent().parent().currFormatState))
         if ((event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Return)) and 
         ((self.parent().parent().prevFormatState == FormatState.Character) or 
         (self.parent().parent().currFormatState == FormatState.Character))):
-            print("STORE CHARACTER")
-        
+            charCursor = self.textCursor()
+            charCursor.movePosition(QTextCursor.Up, QTextCursor.MoveAnchor)
+            charCursor.select(QTextCursor.LineUnderCursor)
+            detectedCharacter = charCursor.selectedText()
+            detectedCharacter = detectedCharacter.strip()
+            if (detectedCharacter != ""):
+                print(detectedCharacter)
+                self.parent().parent().addCharacterName(detectedCharacter)
+                  
     def keyPressEvent(self, event):    
         if self.completer and self.completer.popup().isVisible():
             if event.key() in (
@@ -1191,17 +1221,19 @@ class CompletionTextEdit(QTextEdit):
                 event.ignore()
                 return
                 
-        # the prefered format switching shortcut
-        if (event.key() == (QtCore.Qt.Key_Tab)):
-            self.parent().parent().changeStyle()
-            return
+        # Tab format switching
+        if (writterSettings.tabFormat):
+            if (event.key() == (QtCore.Qt.Key_Tab)):
+                self.parent().parent().changeStyle()
+                return
         
-        # shortcut for new line format
-        if (event.key() in (
-            QtCore.Qt.Key_Enter,
-            QtCore.Qt.Key_Return)):
-            self.parent().parent().customNewLineStyle()
-            return
+        # Enter changes format
+        if (writterSettings.enterFormat):
+            if (event.key() in (
+                QtCore.Qt.Key_Enter,
+                QtCore.Qt.Key_Return)):
+                self.parent().parent().customNewLineStyle()
+                return
                     
         ## only show suggestions for characters
         if not self.parent().parent().characterFormatAction.isChecked():
@@ -1232,8 +1264,7 @@ class CompletionTextEdit(QTextEdit):
         if (completionPrefix != self.completer.completionPrefix()):
             self.completer.setCompletionPrefix(completionPrefix)
             popup = self.completer.popup()
-            popup.setCurrentIndex(
-                self.completer.completionModel().index(0,0))
+            popup.setCurrentIndex(self.completer.completionModel().index(0,0))
 
         cr = self.cursorRect()
         cr.setWidth(self.completer.popup().sizeHintForColumn(0)
@@ -1257,8 +1288,8 @@ if __name__ == "__main__":
 # [X] (Paranthetical) (centered, in brackets, italics?)
 # [X] TRANSITION (right aligned, uppercase)
 # [X] Set page size
-# [ ] Make shortcuts/presets customizable (external text file)
-# [ ] Make "enter" optionally capture character names
+# [X] Make shortcuts/presets customizable (external text file)
+# [X] Make "enter" optionally capture character names
 # [ ] Fix capitalizeFirst
 # [ ] Dark mode? Check how it prints
 # [X] Auto complete character names
