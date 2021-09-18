@@ -3,7 +3,8 @@ A simple screenplay editor
 
 ## Install Instructions
 
-### 1) Make sure you have Python installed (https://www.python.org/downloads/)
+### 1) Make sure you have Python installed 
+Download from https://www.python.org/downloads/
 
 ### 2) Download the following:
 - writer.py
