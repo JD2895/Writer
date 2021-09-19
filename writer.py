@@ -1235,7 +1235,6 @@ class CompletionTextEdit(QTextEdit):
             detectedCharacter = charCursor.selectedText()
             detectedCharacter = detectedCharacter.strip()
             if (detectedCharacter != ""):
-                print(detectedCharacter)
                 self.parent().parent().addCharacterName(detectedCharacter)
                 
             self.setFocus()
