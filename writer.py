@@ -24,11 +24,12 @@ from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
                          QKeySequence,  # Shortcuts
-                         QFontMetrics
+                         QFontMetrics   # UI Scaling
                          )  
                          
 import writterSettings
 
+# UI Scaling helpers
 BASE_DPI = 96
 DPI_MULT = 1
 
@@ -38,7 +39,7 @@ class Main(QMainWindow):
         
         self.undoStack = QUndoStack()
         
-        self.setMinimumWidth(1000)
+        self.setMinimumWidth(round(1000*DPI_MULT))
         self.filename = ""
         self.prevFormatState = FormatState.Action
         self.currFormatState = FormatState.Action
@@ -64,8 +65,6 @@ class Main(QMainWindow):
                 font: 12pt "Courier";
             }
         """)
-        # self.scriptEdit.setMaximumWidth(round(660 * DPI_MULT))
-        # self.scriptEdit.setMinimumWidth(round(660 * DPI_MULT))
         self.scriptEdit.setMaximumWidth(self.monoCharSize * 66)
         self.scriptEdit.setMinimumWidth(self.monoCharSize * 66)
         self.detectionEnabled = True
@@ -403,18 +402,18 @@ class Main(QMainWindow):
         counter = 0
         if (len(self.characterList) == 0):
             noTitle = QLabel('None')
-            noTitle.setMaximumHeight(25)
+            noTitle.setMaximumHeight(round(25*DPI_MULT))
             self.characterListContainer.addWidget(noTitle, counter, 0, 1, 4)
             counter = counter + 1
         else:
             for character in self.characterList:
                 charTitle = QLabel(character)
-                charTitle.setMaximumHeight(25)
+                charTitle.setMaximumHeight(round(25*DPI_MULT))
                 
                 remButton = QPushButton('-', self)
                 remButton.clicked.connect(lambda ignore, a=character : self.removeCharacter(a))
-                remButton.setMaximumWidth(25)
-                remButton.setMaximumHeight(25)
+                remButton.setMaximumWidth(round(25*DPI_MULT))
+                remButton.setMaximumHeight(round(25*DPI_MULT))
                 
                 self.characterListContainer.addWidget(charTitle, counter, 0, 1, 4)
                 self.characterListContainer.addWidget(remButton, counter, 4)
@@ -480,19 +479,19 @@ class Main(QMainWindow):
         self.generateHeaderButton.clicked.connect(self.insertHeader)
         
         # Sizing
-        self.scriptTitle.setMaximumHeight(25)
-        self.scriptTitleCheck.setMaximumHeight(25)
-        self.scriptTitleEdit.setMaximumHeight(25)
+        self.scriptTitle.setMaximumHeight(round(25*DPI_MULT))
+        self.scriptTitleCheck.setMaximumHeight(round(25*DPI_MULT))
+        self.scriptTitleEdit.setMaximumHeight(round(25*DPI_MULT))
         
-        self.authorTitle.setMaximumHeight(25)
-        self.authorTitleCheck.setMaximumHeight(25)
-        self.authorTitleEdit.setMaximumHeight(25)
+        self.authorTitle.setMaximumHeight(round(25*DPI_MULT))
+        self.authorTitleCheck.setMaximumHeight(round(25*DPI_MULT))
+        self.authorTitleEdit.setMaximumHeight(round(25*DPI_MULT))
         
-        self.characterListTitle.setMaximumHeight(25)
-        self.characterListTitleCheck.setMaximumHeight(25)
+        self.characterListTitle.setMaximumHeight(round(25*DPI_MULT))
+        self.characterListTitleCheck.setMaximumHeight(round(25*DPI_MULT))
         
         midSpace = QLabel(' ')
-        midSpace.setMaximumHeight(7)
+        midSpace.setMaximumHeight(round(7*DPI_MULT))
         bottomSpace = QLabel(' ')
         
         self.headerMenuGrid = QGridLayout()
@@ -609,14 +608,10 @@ class Main(QMainWindow):
         preview.exec_()
      
     def print(self):
-        print('printer stuff')
         printer = QPrinter()
         dialog = QPrintDialog(printer)
         if dialog.exec() == QDialog.Accepted:
-            print(printer.pageRect(QPrinter.Millimeter))
-            print(printer.pageRect(QPrinter.DevicePixel))
             dialog.printer().setResolution(BASE_DPI)
-            print(dialog.printer().resolution())
             self.scriptEdit.document().print(dialog.printer())
                    
     def bulletList(self):
@@ -687,16 +682,11 @@ class Main(QMainWindow):
     def setFontFormats(self):
         basefont = QFont()
         basefont.setFamily("Courier")
-        
-        #print(self.parent().desktop().logicalDpiX() / BASE_DPI)
-        print(DPI_MULT)
-        #basefont.setPointSizeF(12 * DPI_MULT)
         basefont.setPointSizeF(12)
-        #basefont.setPointSizeF(10.87)
         
+        # Set the size of a single character (used for UI scaling)
         fm = QFontMetrics(basefont)
         self.monoCharSize = fm.horizontalAdvance("a")
-        print(self.monoCharSize)
     
         self.actionFormat = QTextCharFormat()
         self.actionFormat.setFont(basefont)
@@ -1340,16 +1330,13 @@ class CompletionTextEdit(QTextEdit):
             + self.completer.popup().verticalScrollBar().sizeHint().width())
         self.completer.complete(cr) ## pop it up!
         
-def main():    
-    #QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    
+def main():
     app = QApplication(sys.argv)
     
     global DPI_MULT
     DPI_MULT = (app.desktop().logicalDpiX() / BASE_DPI)
-    print('in main')
-    print(DPI_MULT)
     
+    # Scale UI text with app size
     f = app.font();
     f.setPointSizeF(8 * DPI_MULT);
     app.setFont(f);
