@@ -17,15 +17,20 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QTextEdit, QAction,
                              QHBoxLayout, QLabel, QWidget,  # Layout
                              QUndoStack, QUndoCommand,     # Undo
                              QCompleter, QLineEdit, QPushButton,     # character menu
-                             QCheckBox  # header menu
+                             QCheckBox,  # header menu
+                             
                              )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.QtGui import (QTextListFormat, QFont, QTextCursor,
                          QTextCharFormat, QTextBlockFormat, 
-                         QKeySequence  # Shortcuts
+                         QKeySequence,  # Shortcuts
+                         QFontMetrics
                          )  
                          
 import writterSettings
+
+BASE_DPI = 96
+DPI_MULT = 1
 
 class Main(QMainWindow):
     def __init__(self, parent = None):
@@ -59,7 +64,10 @@ class Main(QMainWindow):
                 font: 12pt "Courier";
             }
         """)
-        self.scriptEdit.setMaximumWidth(660)
+        # self.scriptEdit.setMaximumWidth(round(660 * DPI_MULT))
+        # self.scriptEdit.setMinimumWidth(round(660 * DPI_MULT))
+        self.scriptEdit.setMaximumWidth(self.monoCharSize * 66)
+        self.scriptEdit.setMinimumWidth(self.monoCharSize * 66)
         self.detectionEnabled = True
         self.scriptEdit.cursorPositionChanged.connect(self.detectFormat)         
         # Setting/Adding toolbars
@@ -78,11 +86,17 @@ class Main(QMainWindow):
         self.setCentralWidget(layoutWidget)
                 
         # x and y coordinates on the screen, width, height
-        self.setGeometry(100,100,1000,800) 
+        pos_origin = round(100*DPI_MULT)
+        win_height = round(800*DPI_MULT)
+        win_width = round(1000*DPI_MULT)
+        self.setGeometry(pos_origin, pos_origin, win_width, win_height) 
         self.setWindowTitle("Writer")
+        
+        self.setMinimumWidth(round(1000*DPI_MULT))
         
         # focus on the text editor
         self.scriptEdit.setFocus()
+        self.changeFormatTo(FormatState.Action)
 
     def initToolbar(self):
         # New
@@ -355,16 +369,16 @@ class Main(QMainWindow):
         
         # Character list container
         self.characterListContainer = QGridLayout()
-        self.characterListContainer.setSpacing(2)
+        self.characterListContainer.setSpacing(round(2*DPI_MULT))
         
         # Sizing
-        self.charListTitle.setMaximumHeight(25)
-        self.charListButtonTitle.setMaximumWidth(25)
-        self.charListButtonTitle.setMaximumHeight(25)
-        self.addCharacterButton.setMaximumWidth(25)
-        self.addCharacterButton.setMaximumHeight(25)
+        self.charListTitle.setMaximumHeight(round(25*DPI_MULT))
+        self.charListButtonTitle.setMaximumWidth(round(25*DPI_MULT))
+        self.charListButtonTitle.setMaximumHeight(round(25*DPI_MULT))
+        self.addCharacterButton.setMaximumWidth(round(25*DPI_MULT))
+        self.addCharacterButton.setMaximumHeight(round(25*DPI_MULT))
         self.charMenuGrid = QGridLayout()
-        self.charMenuGrid.setSpacing(2)
+        self.charMenuGrid.setSpacing(round(2*DPI_MULT))
         
         # Build main charMenuGrid
         self.charMenuGrid.addWidget(self.charListTitle,             0, 0, 1, 4)
@@ -595,9 +609,15 @@ class Main(QMainWindow):
         preview.exec_()
      
     def print(self):
-        dialog = QPrintDialog()
-        if dialog.exec_() == QDialog.Accepted:
-            self.scriptEdit.document().print_(dialog.printer())
+        print('printer stuff')
+        printer = QPrinter()
+        dialog = QPrintDialog(printer)
+        if dialog.exec() == QDialog.Accepted:
+            print(printer.pageRect(QPrinter.Millimeter))
+            print(printer.pageRect(QPrinter.DevicePixel))
+            dialog.printer().setResolution(BASE_DPI)
+            print(dialog.printer().resolution())
+            self.scriptEdit.document().print(dialog.printer())
                    
     def bulletList(self):
         cursor = self.scriptEdit.textCursor()
@@ -665,49 +685,68 @@ class Main(QMainWindow):
     ### MENUBAR FUNCTIONS END ###
     
     def setFontFormats(self):
-        self.actionFormat = QTextCharFormat();
-        self.actionFormat.setFontFamily("Courier")
-        self.actionFormat.setFontPointSize(12)
+        basefont = QFont()
+        basefont.setFamily("Courier")
+        
+        #print(self.parent().desktop().logicalDpiX() / BASE_DPI)
+        print(DPI_MULT)
+        #basefont.setPointSizeF(12 * DPI_MULT)
+        basefont.setPointSizeF(12)
+        #basefont.setPointSizeF(10.87)
+        
+        fm = QFontMetrics(basefont)
+        self.monoCharSize = fm.horizontalAdvance("a")
+        print(self.monoCharSize)
+    
+        self.actionFormat = QTextCharFormat()
+        self.actionFormat.setFont(basefont)
+        #self.actionFormat.setFontFamily("Courier")
+        #self.actionFormat.setFontPointSize(12)
         self.actionFormat.setFontCapitalization(QFont.MixedCase)    #First letter is capitalized later
         self.actionFormat.setFontItalic(False)
         self.actionFormat.setFontUnderline(False)
         self.actionFormat.setFontLetterSpacing(101)                 #Added a small change to differentiate from Dialogue
         
-        self.characterFormat = QTextCharFormat();
-        self.characterFormat.setFontFamily("Courier")
-        self.characterFormat.setFontPointSize(12)
+        self.characterFormat = QTextCharFormat()
+        self.characterFormat.setFont(basefont)
+        #self.characterFormat.setFontFamily("Courier")
+        #self.characterFormat.setFontPointSize(12)
         self.characterFormat.setFontCapitalization(QFont.AllUppercase)
         self.characterFormat.setFontItalic(False)
         self.characterFormat.setFontUnderline(False)
         self.characterFormat.setFontLetterSpacing(100)
         
-        self.dialogueFormat = QTextCharFormat();
-        self.dialogueFormat.setFontFamily("Courier")
-        self.dialogueFormat.setFontPointSize(12)
+        self.dialogueFormat = QTextCharFormat()
+        self.dialogueFormat.setFont(basefont)
+        #self.dialogueFormat.setFontFamily("Courier")
+        #self.dialogueFormat.setFontPointSize(12)
         self.dialogueFormat.setFontCapitalization(QFont.MixedCase)  #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
         self.dialogueFormat.setFontUnderline(False)
         self.dialogueFormat.setFontLetterSpacing(100)
         
-        self.paranthesisFormat = QTextCharFormat();
-        self.paranthesisFormat.setFontFamily("Courier")
-        self.paranthesisFormat.setFontPointSize(12)
+        self.paranthesisFormat = QTextCharFormat()
+        self.paranthesisFormat.setFont(basefont)
+        #self.paranthesisFormat.setFontFamily("Courier")
+        #self.paranthesisFormat.setFontPointSize(12)
         self.paranthesisFormat.setFontCapitalization(QFont.MixedCase)
         self.paranthesisFormat.setFontItalic(True)
         self.paranthesisFormat.setFontUnderline(False)
         self.paranthesisFormat.setFontLetterSpacing(100)
         
-        self.headingFormat = QTextCharFormat();
-        self.headingFormat.setFontFamily("Courier")
-        self.headingFormat.setFontPointSize(12)
+        self.headingFormat = QTextCharFormat()
+        self.headingFormat.setFont(basefont)
+        #self.headingFormat.setFontFamily("Courier")
+        #self.headingFormat.setFontPointSize(12)
         self.headingFormat.setFontCapitalization(QFont.AllUppercase)
         self.headingFormat.setFontItalic(False)
         self.headingFormat.setFontUnderline(True)
         self.headingFormat.setFontLetterSpacing(100)
         
-        self.transitionFormat = QTextCharFormat();
-        self.transitionFormat.setFontFamily("Courier")
-        self.transitionFormat.setFontPointSize(12)
+        self.transitionFormat = QTextCharFormat()
+        self.transitionFormat.setFont(basefont)
+        #self.transitionFormat.setFontFamily("Courier")
+        #self.transitionFormat.setFontPointSize(12)
         self.transitionFormat.setFontCapitalization(QFont.AllUppercase)
         self.transitionFormat.setFontItalic(False)
         self.transitionFormat.setFontUnderline(False)
@@ -777,7 +816,7 @@ class Main(QMainWindow):
         toSetReturnPosition = changeCursor.position()
         
         # Line format
-        self.capitalizeFirst(changeCursor)
+        #self.capitalizeFirst(changeCursor)
         changeCursor.select(QTextCursor.BlockUnderCursor)
         changeCursor.setCharFormat(self.actionFormat)
                 
@@ -839,7 +878,7 @@ class Main(QMainWindow):
         toSetReturnPosition = changeCursor.position()
         
         # Line format
-        self.capitalizeFirst(changeCursor)
+        #self.capitalizeFirst(changeCursor)
         changeCursor.select(QTextCursor.BlockUnderCursor)
         changeCursor.setCharFormat(self.dialogueFormat)
         
@@ -1301,8 +1340,21 @@ class CompletionTextEdit(QTextEdit):
             + self.completer.popup().verticalScrollBar().sizeHint().width())
         self.completer.complete(cr) ## pop it up!
         
-def main():
+def main():    
+    #QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    
     app = QApplication(sys.argv)
+    
+    global DPI_MULT
+    DPI_MULT = (app.desktop().logicalDpiX() / BASE_DPI)
+    print('in main')
+    print(DPI_MULT)
+    
+    f = app.font();
+    f.setPointSizeF(8 * DPI_MULT);
+    app.setFont(f);
+    
+    #app.setAttribute(Qt.AA_EnableHighDpiScaling)
     main = Main()
     main.show()
     sys.exit(app.exec_())
@@ -1325,3 +1377,5 @@ if __name__ == "__main__":
 # [X] Auto complete character names
 # [X] Generate header options
 # [X] Shortcut to switch styles
+
+# 100002000030000400005000060000700008000090000110002200033000440005500066000770008800099000
