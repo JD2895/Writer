@@ -424,6 +424,7 @@ class Main(QMainWindow):
         
     def addCharacter(self):
         self.characterList.append(self.newCharacterEdit.text().upper())
+        self.newCharacterEdit.clear()
         
         # Update autocompleter
         completer = QCompleter(self.characterList, None)
