@@ -606,7 +606,8 @@ class Main(QMainWindow):
         
     def preview(self):
         preview = QPrintPreviewDialog()
-        preview.paintRequested.connect(lambda p: self.scriptEdit.print_(p))
+        preview.printer().setResolution(BASE_DPI)
+        preview.paintRequested.connect(lambda p: self.scriptEdit.print(p))
         preview.exec_()
      
     def print(self):
@@ -1366,5 +1367,3 @@ if __name__ == "__main__":
 # [X] Auto complete character names
 # [X] Generate header options
 # [X] Shortcut to switch styles
-
-# 100002000030000400005000060000700008000090000110002200033000440005500066000770008800099000
