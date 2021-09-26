@@ -361,6 +361,7 @@ class Main(QMainWindow):
         self.charListTitle = QLabel('Characters')
         self.charListButtonTitle = QLabel('+/-')
         self.newCharacterEdit = QLineEdit()
+        self.newCharacterEdit.returnPressed.connect(self.addCharacter)
         
         # Add characters button
         self.addCharacterButton = QPushButton('+', self)
