@@ -696,8 +696,9 @@ class Main(QMainWindow):
         #self.actionFormat.setFontFamily("Courier")
         #self.actionFormat.setFontPointSize(12)
         self.actionFormat.setFontCapitalization(QFont.MixedCase)    #First letter is capitalized later
-        self.actionFormat.setFontItalic(False)
+        self.actionFormat.setFontItalic(True)
         self.actionFormat.setFontUnderline(False)
+        self.actionFormat.setFontWeight(QtGui.QFont.Normal)
         self.actionFormat.setFontLetterSpacing(101)                 #Added a small change to differentiate from Dialogue
         
         self.characterFormat = QTextCharFormat()
@@ -707,6 +708,7 @@ class Main(QMainWindow):
         self.characterFormat.setFontCapitalization(QFont.AllUppercase)
         self.characterFormat.setFontItalic(False)
         self.characterFormat.setFontUnderline(False)
+        self.characterFormat.setFontWeight(QtGui.QFont.ExtraBold)
         self.characterFormat.setFontLetterSpacing(100)
         
         self.dialogueFormat = QTextCharFormat()
@@ -716,6 +718,7 @@ class Main(QMainWindow):
         self.dialogueFormat.setFontCapitalization(QFont.MixedCase)  #First letter is capitalized later
         self.dialogueFormat.setFontItalic(False)
         self.dialogueFormat.setFontUnderline(False)
+        self.dialogueFormat.setFontWeight(QtGui.QFont.Normal)
         self.dialogueFormat.setFontLetterSpacing(100)
         
         self.paranthesisFormat = QTextCharFormat()
@@ -725,6 +728,7 @@ class Main(QMainWindow):
         self.paranthesisFormat.setFontCapitalization(QFont.MixedCase)
         self.paranthesisFormat.setFontItalic(True)
         self.paranthesisFormat.setFontUnderline(False)
+        self.paranthesisFormat.setFontWeight(QtGui.QFont.Normal)
         self.paranthesisFormat.setFontLetterSpacing(100)
         
         self.headingFormat = QTextCharFormat()
@@ -734,6 +738,7 @@ class Main(QMainWindow):
         self.headingFormat.setFontCapitalization(QFont.AllUppercase)
         self.headingFormat.setFontItalic(False)
         self.headingFormat.setFontUnderline(True)
+        self.headingFormat.setFontWeight(QtGui.QFont.ExtraBold)
         self.headingFormat.setFontLetterSpacing(100)
         
         self.transitionFormat = QTextCharFormat()
@@ -743,6 +748,7 @@ class Main(QMainWindow):
         self.transitionFormat.setFontCapitalization(QFont.AllUppercase)
         self.transitionFormat.setFontItalic(False)
         self.transitionFormat.setFontUnderline(False)
+        self.transitionFormat.setFontWeight(QtGui.QFont.Normal)
         self.transitionFormat.setFontLetterSpacing(101)             #Added a small change to differentiate from Character
         
     def setBlockFormats(self):
